@@ -1,0 +1,32 @@
+.chessboard {
+    width: 512px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chessboard-row {
+    height: 64px;
+    display: flex;
+}
+
+.chessboard-cell {
+    width: 64px;
+}
+
+.white-cell {
+    background-color: white;
+}
+
+.gray-cell {
+    background-color: rgb(170, 170, 170);
+}
+
+img {
+    width: 64px;
+    height: 64px;
+    cursor: pointer;
+}
+
+img:hover {
+    opacity: 0.7;
+}

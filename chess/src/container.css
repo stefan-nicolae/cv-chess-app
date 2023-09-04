@@ -1,0 +1,15 @@
+:root {
+    --backgroundColor: rgb(69, 69, 69);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.container {
+    background-color: var(--backgroundColor);
+    height: 100vh;
+    padding: 32px;
+}
