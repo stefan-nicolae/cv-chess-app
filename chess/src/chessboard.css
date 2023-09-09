@@ -21,6 +21,10 @@
     background-color: rgb(170, 170, 170);
 }
 
+.red-cell {
+    background-color: red;
+}
+
 img {
     width: 64px;
     height: 64px;

@@ -46,8 +46,8 @@ class Pawn extends Piece {
     }
 
     // Pawns can capture diagonally
-    allowedMoves.push([currentRow + direction, currentCol - 1]);
-    allowedMoves.push([currentRow + direction, currentCol + 1]);
+    allowedMoves.push([currentRow + direction * 2, currentCol - 1, true]);
+    allowedMoves.push([currentRow + direction * 2, currentCol + 1, true]);
 
     // Filter out invalid moves (e.g., outside the board)
     return allowedMoves.filter(([newRow, newCol]) => {
