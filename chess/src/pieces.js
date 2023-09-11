@@ -31,7 +31,7 @@ class Pawn extends Piece {
 
   allowedMovement() {
     const [currentRow, currentCol] = this.position;
-    const direction = this.color === "white" ? 1 : -1;
+    const direction = this.color === "thatSide" ? 1 : -1;
     const allowedMoves = [];
 
     // Pawns can move one square forward
@@ -39,15 +39,15 @@ class Pawn extends Piece {
 
     // Pawns can move two squares forward on their first move
     if (
-      (currentRow === 1 && this.color === "white") ||
-      (currentRow === 6 && this.color === "black")
+      (currentRow === 1 && this.color === "thatSide") ||
+      (currentRow === 6 && this.color === "thisSide")
     ) {
       allowedMoves.push([currentRow + 2 * direction, currentCol]);
     }
 
     // Pawns can capture diagonally
-    allowedMoves.push([currentRow + direction * 2, currentCol - 1, true]);
-    allowedMoves.push([currentRow + direction * 2, currentCol + 1, true]);
+    allowedMoves.push([currentRow + direction, currentCol - 1, true]);
+    allowedMoves.push([currentRow + direction, currentCol + 1, true]);
 
     // Filter out invalid moves (e.g., outside the board)
     return allowedMoves.filter(([newRow, newCol]) => {
@@ -191,7 +191,6 @@ class King extends Piece {
     });
   }
 }
-
 
 const pieceData = {
   Pawn: [pawnBlack, pawnWhite],

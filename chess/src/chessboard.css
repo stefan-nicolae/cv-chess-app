@@ -22,12 +22,15 @@
 }
 
 .red-cell {
-    background-color: red;
+    background-color: rgb(255, 164, 164);
 }
 
 img {
     width: 64px;
     height: 64px;
+}
+
+.chess-piece.user img {
     cursor: pointer;
 }
 

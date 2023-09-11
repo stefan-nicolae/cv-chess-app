@@ -1,0 +1,11 @@
+.captured-pieces {
+    height: 128px;
+    width: 512px;
+    background-color: rgb(95, 95, 95);
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.captured-pieces img:hover {
+    opacity: 1;
+}

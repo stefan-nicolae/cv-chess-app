@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import "./chessboard.css";
-import { pieceData, Piece, Pawn, Rook, Knight, Bishop, Queen, King } from "./pieces";
+import { pieceData, Pawn, Rook, Knight, Bishop, Queen, King } from "./pieces";
 
-
-// Import the Piece classes (Pawn, Rook, Knight, Bishop, Queen, King)
-// Make sure the classes are available in the same scope
+const thisSide = "thisSide"
+const thatSide = "thatSide"
+const enemyKing = new King(thatSide, [0, 4]);
 
 function arrayExistsInLibrary(array, library) {
   if(library === null) return false
@@ -13,25 +13,15 @@ function arrayExistsInLibrary(array, library) {
   });
 }
 
-//TODO: The game logic should work with thisSide & thatSide. 
-
-//At the start of the game, the server decides what color is thisSide and what color is thatSide
-
-export default function Chessboard() {
-  // Initialize the chessboard state with an 8x8 array of null values
+const initializeChessboard = () => {
   const initialChessboard = Array.from({ length: 8 }, () =>
-    Array(8).fill(null)
+  Array(8).fill(null)
   );
-
-  //SHOULD ACTUALLY BE DECIDED BY THE SERVER
-  const thisSide = "black"
-  const thatSide = thisSide === "white" ? "black" : "white"
-
   initialChessboard[0][0] = new Rook(thatSide, [0, 0]);
   initialChessboard[0][1] = new Knight(thatSide, [0, 1]);
   initialChessboard[0][2] = new Bishop(thatSide, [0, 2]);
   initialChessboard[0][3] = new Queen(thatSide, [0, 3]);
-  initialChessboard[0][4] = new King(thatSide, [0, 4]);
+  initialChessboard[0][4] = enemyKing
   initialChessboard[0][5] = new Bishop(thatSide, [0, 5]);
   initialChessboard[0][6] = new Knight(thatSide, [0, 6]);
   initialChessboard[0][7] = new Rook(thatSide, [0, 7]);
@@ -49,57 +39,152 @@ export default function Chessboard() {
   initialChessboard[7][7] = new Rook(thisSide, [7, 7]);
   for (let i = 0; i < 8; i++) {
     initialChessboard[6][i] = new Pawn(thisSide, [6, i]);
+  }    
+  return initialChessboard
+}
+
+const filterAllowedMovement = (piece, chessboard) => {
+  const allowedMovementTemp = piece.allowedMovement()
+  allowedMovementTemp.sort((a, b) => -a[0] + b[0]);
+  for(let i = 0; i < allowedMovementTemp.length; i++) {
+    const row = allowedMovementTemp[i][0]
+    const col = allowedMovementTemp[i][1]
+    const isPawnCapturing = allowedMovementTemp[i][2]
+
+    if(isPawnCapturing) 
+      allowedMovementTemp[i].pop() //get rid of the third element
+
+    if(chessboard[row][col] && chessboard[row][col].color === "thisSide") 
+      allowedMovementTemp[i] = []
+    
+    if(piece.type==="Pawn" && (!chessboard[row][col] || chessboard[row][col].color === "thisSide") && isPawnCapturing) {
+      allowedMovementTemp[i] = []
+    } 
+
+    if(piece.type==="Pawn" && chessboard[piece.position[0] - 1][piece.position[1]]) {
+      if(allowedMovementTemp[i][0] === piece.position[0] - 1 && allowedMovementTemp[i][1] === piece.position[1]) {
+        allowedMovementTemp[i] = []
+      }
+    }
+
+    if (piece.type === "Rook" || piece.type === "Queen") {
+      // Check if there are any pieces blocking the horizontal and vertical paths
+      if (row !== piece.position[0]) {
+        const start = Math.min(row, piece.position[0]);
+        const end = Math.max(row, piece.position[0]);
+        for (let r = start + 1; r < end; r++) {
+          if (chessboard[r][col]) {
+            allowedMovementTemp[i] = [];
+            break;
+          }
+        }
+      } else if (col !== piece.position[1]) {
+        const start = Math.min(col, piece.position[1]);
+        const end = Math.max(col, piece.position[1]);
+        for (let c = start + 1; c < end; c++) {
+          if (chessboard[row][c]) {
+            allowedMovementTemp[i] = [];
+            break;
+          }
+        }
+      }
+    }
+
+    if (piece.type === "King") {
+      // Implement King's movement restrictions (1 square in any direction)
+      const rowDiff = Math.abs(row - piece.position[0]);
+      const colDiff = Math.abs(col - piece.position[1]);
+      if (rowDiff > 1 || colDiff > 1) {
+        allowedMovementTemp[i] = [];
+      }
+    }
+    
+    if (piece.type === "Bishop" || piece.type === "Queen") {
+      // Check if there are any pieces blocking the diagonal paths
+      const rowDiff = Math.abs(row - piece.position[0]);
+      const colDiff = Math.abs(col - piece.position[1]);
+      if (rowDiff === colDiff) {
+        const startRow = Math.min(row, piece.position[0]);
+        const endRow = Math.max(row, piece.position[0]);
+        const startCol = Math.min(col, piece.position[1]);
+        const endCol = Math.max(col, piece.position[1]);
+        for (let r = startRow + 1, c = startCol + 1; r < endRow; r++, c++) {
+          if (chessboard[r][c]) {
+            allowedMovementTemp[i] = [];
+            break;
+          }
+        }
+      }
+    } 
   }
+  return allowedMovementTemp
+}
 
-  const [chessboard, setChessboard] = useState(initialChessboard);
-  // const [draggedPiece, setDraggedPiece] = useState(null);
+const isAlliedCheckmate = (chessboard) => {
+  const enemyKingAllowedMovement = filterAllowedMovement(enemyKing, chessboard)
+  for(let r = 0; r<8; r++) {
+    for(let c = 0; c < 8; c++) {
+      const alliedAllowedMovement = filterAllowedMovement(chessboard[r][c], chessboard)
+      alliedAllowedMovement.forEach(a => {
+        for(let i = 0; i<enemyKingAllowedMovement; i++) {
+          if(enemyKingAllowedMovement[i][0] === a[0] && enemyKingAllowedMovement[i][1] === a[1]) {
+            enemyKingAllowedMovement.splice(i, 1)
+          }
+        }
+      })
+    }
+  }
+  return enemyKingAllowedMovement.length 
+}
+
+export default function Chessboard(props) {
+  const ourTeam = props.ourTeam
+  const theirTeam = props.theirTeam
+  const [chessboard, setChessboard] = useState(initializeChessboard());
   const [allowedMovement, setAllowedMovement] = useState([])
-
+  const [draggedPiece, setDraggedPiece] = useState()
 
   const handleDragStart = (e, piece) => {
+    if(piece.color === "thatSide")  {
+      e.preventDefault()
+      return
+    }
     e.dataTransfer.setData("text/plain", ""); // Required for Firefox
-    console.log("test")
-    // setDraggedPiece(piece);
-    // if (!draggedPiece) return;
-    // setTimeout(() => {
-          const allowedMovementTemp = piece.allowedMovement()
-          for(let i = 0; i < allowedMovementTemp.length; i++) {
-            const row = allowedMovementTemp[i][0]
-            const col = allowedMovementTemp[i][1]
-            const isPawnCapturing = allowedMovementTemp[i][2]
-            if(isPawnCapturing) allowedMovementTemp[i].pop() //get rid of the third element
-            //if there's an element & it's thisSide, remove that coord
-            // if(chessboard[col][row] && chessboard[col][row].color === thisSide) allowedMovementTemp[i] = []
-            //if there's no element & isPawnCapturing is true, remove that coord
-            // if(!chessboard[col][row] && isPawnCapturing) allowedMovementTemp[i] = []
-          }
-          setAllowedMovement(allowedMovementTemp)
-
-    // },100)
+    setDraggedPiece(piece)
+    setAllowedMovement(filterAllowedMovement(piece, chessboard))
   };
   
   const handleDragEnd = () => {
-    // setDraggedPiece(null);
     setAllowedMovement(null)
   };
 
   const handleDragOver = (e, targetRow, targetCol) => {
     e.preventDefault(); // Necessary to allow dropping
-
   };
   
   const handleDrop = (e, targetRow, targetCol) => {
     e.preventDefault();
-  
+    const isMoveAllowed = allowedMovement.some(move => {
+      return move[0] === targetRow && move[1] === targetCol;
+    });   
+    if(!isMoveAllowed) return
+    const newChessboard = [...chessboard]
+    newChessboard[draggedPiece.position[0]][draggedPiece.position[1]] = null
+    draggedPiece.position = [targetRow, targetCol]
 
-    // Perform your logic to update the chessboard state here
-    // For example, move the piece to the new position
-    // Update the state accordingly to reflect the new chessboard state
-    // setDraggedPiece(null)
+    const capturedPiece = newChessboard[targetRow][targetCol] 
+    if(capturedPiece) {
+      const newCapturedPieces = {...props.capturedPieces}
+      newCapturedPieces.enemy.push(capturedPiece)
+      props.setCapturedPieces(newCapturedPieces)
+    }
 
+    newChessboard[targetRow][targetCol] = draggedPiece
+    setDraggedPiece(null)
+    setAllowedMovement([])
+    setChessboard(newChessboard)
   };
 
-  // Render the chessboard with pieces
   return (
     <div className="chessboard">
       {chessboard.map((row, rowIndex) => (
@@ -120,19 +205,17 @@ export default function Chessboard() {
                     {piece && (
                       <div
                         className={`chess-piece ${
-                          piece.color === "white" ? "white" : "black"
+                          piece.color === "thisSide" ? "user" : ""
                         }`}
                       >
-                        <img src={pieceData[piece.type][piece.color === "black" ? 0 : 1]} alt={piece.type} />
+                        <img src={pieceData[piece.type][(piece.color === "thisSide" ? ourTeam : theirTeam) === "black" ? 0 : 1]} alt={piece.type} />
                       </div>
                     )}
                   </div>
                 );
               })}
-
         </div>
       ))}
     </div>
   );
-  
 }
