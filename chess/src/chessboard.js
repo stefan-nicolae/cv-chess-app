@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./chessboard.css";
 import { pieceData, Pawn, Rook, Knight, Bishop, Queen, King } from "./pieces";
 
@@ -144,6 +144,10 @@ export default function Chessboard(props) {
   const [allowedMovement, setAllowedMovement] = useState([])
   const [draggedPiece, setDraggedPiece] = useState()
 
+  useEffect(() => {
+    if(props.newChessboard) setChessboard(JSON.parse(props.newChessboard))
+  }, [props.newChessboard])
+
   const handleDragStart = (e, piece) => {
     if(piece.color === "thatSide")  {
       e.preventDefault()
@@ -182,6 +186,9 @@ export default function Chessboard(props) {
     newChessboard[targetRow][targetCol] = draggedPiece
     setDraggedPiece(null)
     setAllowedMovement([])
+    //SEND THE NEW CHESSBOARD 
+    props.sendNewChessboard(newChessboard)
+
     setChessboard(newChessboard)
   };
 
