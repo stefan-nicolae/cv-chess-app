@@ -14,11 +14,10 @@ import rookWhite from "./pieces/rook-white.png";
 class Piece {
   constructor(color, position) {
     this.color = color;
-    this.position = position || [undefined, undefined]; // [row, column]
+    this.position = position || [undefined, undefined]; 
   }
 
   allowedMovement() {
-    // Subclasses will implement this method to return an array of allowed moves
     return [];
   }
 }
@@ -34,10 +33,8 @@ class Pawn extends Piece {
     const direction = this.color === "thatSide" ? 1 : -1;
     const allowedMoves = [];
 
-    // Pawns can move one square forward
     allowedMoves.push([currentRow + direction, currentCol]);
 
-    // Pawns can move two squares forward on their first move
     if (
       (currentRow === 1 && this.color === "thatSide") ||
       (currentRow === 6 && this.color === "thisSide")
@@ -45,11 +42,9 @@ class Pawn extends Piece {
       allowedMoves.push([currentRow + 2 * direction, currentCol]);
     }
 
-    // Pawns can capture diagonally
     allowedMoves.push([currentRow + direction, currentCol - 1, true]);
     allowedMoves.push([currentRow + direction, currentCol + 1, true]);
 
-    // Filter out invalid moves (e.g., outside the board)
     return allowedMoves.filter(([newRow, newCol]) => {
       return newRow >= 0 && newRow <= 7 && newCol >= 0 && newCol <= 7;
     });
@@ -66,14 +61,12 @@ class Rook extends Piece {
     const [currentRow, currentCol] = this.position;
     const allowedMoves = [];
 
-    // Rooks can move horizontally
     for (let newRow = 0; newRow < 8; newRow++) {
       if (newRow !== currentRow) {
         allowedMoves.push([newRow, currentCol]);
       }
     }
 
-    // Rooks can move vertically
     for (let newCol = 0; newCol < 8; newCol++) {
       if (newCol !== currentCol) {
         allowedMoves.push([currentRow, newCol]);
@@ -94,7 +87,6 @@ class Knight extends Piece {
     const [currentRow, currentCol] = this.position;
     const allowedMoves = [];
 
-    // Knights can move in an L-shape (2 squares in one direction and 1 square in the other)
     const moves = [
       [currentRow - 2, currentCol - 1],
       [currentRow - 2, currentCol + 1],
@@ -106,7 +98,6 @@ class Knight extends Piece {
       [currentRow + 2, currentCol + 1],
     ];
 
-    // Filter out invalid moves (e.g., outside the board)
     return moves.filter(([newRow, newCol]) => {
       return newRow >= 0 && newRow <= 7 && newCol >= 0 && newCol <= 7;
     });
@@ -123,7 +114,6 @@ class Bishop extends Piece {
     const [currentRow, currentCol] = this.position;
     const allowedMoves = [];
 
-    // Bishops can move diagonally
     for (let newRow = 0; newRow < 8; newRow++) {
       for (let newCol = 0; newCol < 8; newCol++) {
         if (
@@ -149,7 +139,6 @@ class Queen extends Piece {
     const [currentRow, currentCol] = this.position;
     const allowedMoves = [];
 
-    // Queens can move horizontally, vertically, or diagonally
     for (let newRow = 0; newRow < 8; newRow++) {
       for (let newCol = 0; newCol < 8; newCol++) {
         if (
@@ -176,7 +165,6 @@ class King extends Piece {
     const [currentRow, currentCol] = this.position;
     const allowedMoves = [];
 
-    // Kings can move one square in any direction
     for (let newRow = currentRow - 1; newRow <= currentRow + 1; newRow++) {
       for (let newCol = currentCol - 1; newCol <= currentCol + 1; newCol++) {
         if (newRow !== currentRow || newCol !== currentCol) {
@@ -185,7 +173,6 @@ class King extends Piece {
       }
     }
 
-    // Filter out invalid moves (e.g., outside the board)
     return allowedMoves.filter(([newRow, newCol]) => {
       return newRow >= 0 && newRow <= 7 && newCol >= 0 && newCol <= 7;
     });

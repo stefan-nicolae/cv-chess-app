@@ -4,39 +4,43 @@ import Chessboard from "./chessboard"
 import { useState, useRef, useEffect } from "react"
 import useWebSocket from './network';
 
-function flipChessboard(chessboard, thisSide, thatSide) {
-    // Create a deep copy of the original chessboard
-    const flippedChessboard = JSON.parse(JSON.stringify(chessboard));
+function flipChessboard(chessboard) {
+    const flippedChessboard = [];
   
-    // Swap the rows to flip the chessboard
-    flippedChessboard.reverse();
-  
-    // Update the references to piece objects and their colors
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
-        const piece = flippedChessboard[row][col];
-        if (piece) {
-          // Update the position of the piece
-          piece.position = [row, col];
-  
-          // Update the color of the piece based on which side it belongs to
-          piece.color = piece.color === thisSide ? thatSide : thisSide;
+    for (let row = 7; row >= 0; row--) {
+      flippedChessboard.push([]);
+      for (let col = 7; col >= 0; col--) {
+        const piece = chessboard[row][col];
+        if (piece !== null) {
+          const newPiece = {
+            color: piece.color === "thisSide" ? "thatSide" : "thisSide",
+            position: [7 - row, 7 - col], 
+            type: piece.type 
+          };
+          flippedChessboard[7 - row][7 - col] = newPiece;
+        } else {
+          flippedChessboard[7 - row][7 - col] = null;
         }
       }
     }
-  
     return flippedChessboard;
-  }
-  
+}
 
 export default function Container () {
     const [capturedPieces, setCapturedPieces] = useState({enemy:[], allied:[]})
     const [partner, setPartner] = useState(false)
     const [newChessboard, setNewChessboard] = useState()
+    const [isMyTurn, setMyTurn] = useState(false)
     const inputRef = useRef(null);
     const roomIDRequested = useRef(false);
     const ourTeam = useRef(null);
     const theirTeam = useRef(null);
+    const skipCapturedPieceRequest = useRef(false)
+
+    const toggleMyTurn = () => {
+        if(isMyTurn) setMyTurn(false) 
+        else setMyTurn(true)
+    }
 
     const onReceive = (receivedMessage) =>  {
         console.log("RECEIVED " + receivedMessage)
@@ -58,9 +62,42 @@ export default function Container () {
                 break
             case "newChessboard":
                 setNewChessboard(receivedMessage.value);
+                toggleMyTurn()
+                break
+            case "capturedPiece":
+                const originalObject = receivedMessage.value 
+                const object = JSON.parse(originalObject)
+                const temp = object.enemy;
+                object.enemy = object.allied;
+                object.allied = temp;
+                Object.keys(object).forEach(key => {
+                    Object.keys(object[key]).forEach(pieceKey => {
+                        const piece = object[key][pieceKey]
+                        piece.color = piece.color === "thatSide" ? "thisSide" : "thatSide"
+                    })
+                })
+                skipCapturedPieceRequest.current = true
+                setCapturedPieces(object)
                 break
         }
     }
+
+    useEffect(() => {
+        if(!skipCapturedPieceRequest.current) {
+            console.log("captured pieces changed")
+            sendWebSocketMessage({
+                "request": "capturedPiece",
+                "value": JSON.stringify(capturedPieces)
+            })
+        }
+        skipCapturedPieceRequest.current = false
+    }, [capturedPieces])
+
+    useEffect(() => {
+        if(partner && ourTeam.current === "white") {
+            setMyTurn(true)
+        }
+    }, [partner])
 
     const { isConnected, sendWebSocketMessage } = useWebSocket(onReceive);
     const [roomID, setRoomID] = useState()
@@ -81,10 +118,11 @@ export default function Container () {
 
     const sendNewChessboard = (newChessboard) => {
         console.log(newChessboard)
-        // sendWebSocketMessage({
-        //     "request": "newChessboard",
-        //     "value": JSON.stringify(flipChessboard(newChessboard))
-        // })
+        sendWebSocketMessage({
+            "request": "newChessboard",
+            "value": JSON.stringify(flipChessboard(newChessboard))
+        })
+        toggleMyTurn()
     }
 
 
@@ -115,7 +153,7 @@ export default function Container () {
     if(isConnected && roomID && partner) return <div className="container">
         <CapturedPieces capturedPieces={capturedPieces.enemy} ourTeam={ourTeam.current} theirTeam={theirTeam.current} roomID={roomID}/>
         <Chessboard setCapturedPieces={setCapturedPieces} capturedPieces={capturedPieces} ourTeam={ourTeam.current} 
-            theirTeam={theirTeam.current} sendNewChessboard={sendNewChessboard}  newChessboard={newChessboard}/>
+            theirTeam={theirTeam.current} sendNewChessboard={sendNewChessboard}  newChessboard={newChessboard} isMyTurn={isMyTurn}/>
         <CapturedPieces capturedPieces={capturedPieces.allied} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
     </div>
 

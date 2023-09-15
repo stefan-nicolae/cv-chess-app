@@ -52,7 +52,7 @@ const filterAllowedMovement = (piece, chessboard) => {
     const isPawnCapturing = allowedMovementTemp[i][2]
 
     if(isPawnCapturing) 
-      allowedMovementTemp[i].pop() //get rid of the third element
+      allowedMovementTemp[i].pop() 
 
     if(chessboard[row][col] && chessboard[row][col].color === "thisSide") 
       allowedMovementTemp[i] = []
@@ -68,7 +68,6 @@ const filterAllowedMovement = (piece, chessboard) => {
     }
 
     if (piece.type === "Rook" || piece.type === "Queen") {
-      // Check if there are any pieces blocking the horizontal and vertical paths
       if (row !== piece.position[0]) {
         const start = Math.min(row, piece.position[0]);
         const end = Math.max(row, piece.position[0]);
@@ -91,7 +90,6 @@ const filterAllowedMovement = (piece, chessboard) => {
     }
 
     if (piece.type === "King") {
-      // Implement King's movement restrictions (1 square in any direction)
       const rowDiff = Math.abs(row - piece.position[0]);
       const colDiff = Math.abs(col - piece.position[1]);
       if (rowDiff > 1 || colDiff > 1) {
@@ -100,7 +98,6 @@ const filterAllowedMovement = (piece, chessboard) => {
     }
     
     if (piece.type === "Bishop" || piece.type === "Queen") {
-      // Check if there are any pieces blocking the diagonal paths
       const rowDiff = Math.abs(row - piece.position[0]);
       const colDiff = Math.abs(col - piece.position[1]);
       if (rowDiff === colDiff) {
@@ -118,6 +115,10 @@ const filterAllowedMovement = (piece, chessboard) => {
     } 
   }
   return allowedMovementTemp
+}
+
+const pieceToClass = (piece, pieceObject) => {
+  return new pieceObject(piece.color, [piece.position[0], piece.position[1]])
 }
 
 const isAlliedCheckmate = (chessboard) => {
@@ -145,15 +146,48 @@ export default function Chessboard(props) {
   const [draggedPiece, setDraggedPiece] = useState()
 
   useEffect(() => {
-    if(props.newChessboard) setChessboard(JSON.parse(props.newChessboard))
+    if(props.newChessboard) {
+      const newChessboard = Array.from({ length: 8 }, () =>
+        Array(8).fill(null)
+      );
+      if(props.newChessboard) JSON.parse(props.newChessboard).forEach((row => {
+        row.forEach(piece => {
+          if(piece !== null) {
+            let pieceClass 
+            switch(piece.type) {
+              case "Pawn":
+                pieceClass = pieceToClass(piece, Pawn);
+                break;
+              case "Rook":
+                pieceClass = pieceToClass(piece, Rook);
+                break;
+              case "Knight":
+                pieceClass = pieceToClass(piece, Knight);
+                break;
+              case "Bishop":
+                pieceClass = pieceToClass(piece, Bishop);
+                break;
+              case "Queen":
+                pieceClass = pieceToClass(piece, Queen);
+                break;
+              case "King":
+                pieceClass = pieceToClass(piece, King);
+                break;
+            }
+            newChessboard[piece.position[0]][piece.position[1]] = pieceClass
+          }
+        })
+      }))
+      setChessboard(newChessboard)
+    }
   }, [props.newChessboard])
 
   const handleDragStart = (e, piece) => {
-    if(piece.color === "thatSide")  {
+    if(piece.color === "thatSide" || !props.isMyTurn)  {
       e.preventDefault()
       return
     }
-    e.dataTransfer.setData("text/plain", ""); // Required for Firefox
+    e.dataTransfer.setData("text/plain", ""); 
     setDraggedPiece(piece)
     setAllowedMovement(filterAllowedMovement(piece, chessboard))
   };
@@ -163,7 +197,7 @@ export default function Chessboard(props) {
   };
 
   const handleDragOver = (e, targetRow, targetCol) => {
-    e.preventDefault(); // Necessary to allow dropping
+    e.preventDefault();
   };
   
   const handleDrop = (e, targetRow, targetCol) => {
@@ -186,7 +220,6 @@ export default function Chessboard(props) {
     newChessboard[targetRow][targetCol] = draggedPiece
     setDraggedPiece(null)
     setAllowedMovement([])
-    //SEND THE NEW CHESSBOARD 
     props.sendNewChessboard(newChessboard)
 
     setChessboard(newChessboard)

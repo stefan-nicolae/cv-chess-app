@@ -1,2 +1,16 @@
-Connect
-Do and test all game rules
+x Connect clients
+x Connect chessboards
+x send capture message to server
+x Implement TURNS
+    x At game start, set ismyturn to true if team is white, 
+    x Toggle ismyturn when sending a movement, and when receiving a movement
+   x You can't send a movement if ismyturn = false
+- Do and test all game rules
+- put the roomID message above
+- Stuck on connecting to the server...
+- Get kicked out if ROOM is deleted
+
+
+- Do mobile version
+- Prettify it
+- Remove all comments and semicolons and make the code pretty

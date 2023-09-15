@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const WebSocketHost = 'ws://localhost:8080'; // Replace with your WebSocket server URL
+const WebSocketHost = 'ws://localhost:8080'; 
 
 function useWebSocket(onReceive) {
   const [socket, setSocket] = useState(null);
