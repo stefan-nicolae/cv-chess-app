@@ -1,5 +1,6 @@
 .captured-pieces {
     height: 128px;
+    min-height: 128px;
     width: 512px;
     background-color: rgb(95, 95, 95);
     display: flex;

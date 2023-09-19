@@ -4,7 +4,6 @@ import { pieceData, Pawn, Rook, Knight, Bishop, Queen, King } from "./pieces";
 
 const thisSide = "thisSide"
 const thatSide = "thatSide"
-const enemyKing = new King(thatSide, [0, 4]);
 
 function arrayExistsInLibrary(array, library) {
   if(library === null) return false
@@ -21,7 +20,7 @@ const initializeChessboard = () => {
   initialChessboard[0][1] = new Knight(thatSide, [0, 1]);
   initialChessboard[0][2] = new Bishop(thatSide, [0, 2]);
   initialChessboard[0][3] = new Queen(thatSide, [0, 3]);
-  initialChessboard[0][4] = enemyKing
+  initialChessboard[0][4] = new King(thatSide, [0, 4]);
   initialChessboard[0][5] = new Bishop(thatSide, [0, 5]);
   initialChessboard[0][6] = new Knight(thatSide, [0, 6]);
   initialChessboard[0][7] = new Rook(thatSide, [0, 7]);
@@ -43,21 +42,61 @@ const initializeChessboard = () => {
   return initialChessboard
 }
 
+const checkDiag = (piecePos, allowedPiecePos) => {
+  const rowDiff = piecePos[0] - allowedPiecePos[0]
+  const colDiff = piecePos[1] - allowedPiecePos[1]
+  if(Math.abs(rowDiff) === Math.abs(colDiff)) {
+    if(rowDiff > 0 && colDiff > 0) return "TopLeft"
+    if(rowDiff > 0 && colDiff < 0) return "TopRight"
+    if(rowDiff < 0 && colDiff > 0) return "BottomLeft"
+    if(rowDiff < 0 && colDiff < 0) return "BottomRight" 
+  }
+  return false
+}
+
+const truncateAMDiag = (AM, allowedPiece, allowedPieceDiagPos) => {
+  const newAM = []
+  AM.forEach(coords => {
+    if(allowedPieceDiagPos !== checkDiag(allowedPiece.position, coords)) {
+      newAM.push(coords)
+    }
+  })
+  return newAM
+}
+
+const truncateAMStraight = (AM, rowLimitTop, rowLimitBot, colLimitLeft, colLimitRight, piece) => {
+  const newAM = []
+  AM.forEach(coords => {
+    let insert = true
+    if(rowLimitTop !== null && coords[0] < rowLimitTop) insert = false
+    if(rowLimitBot !== null && coords[0] > rowLimitBot) insert = false
+    if(colLimitLeft !== null && coords[1] < colLimitLeft) insert = false
+    if(colLimitRight !== null && coords[1] > colLimitRight) insert = false
+    if(checkDiag(piece.position, coords)) insert = true
+    if(insert) { 
+      newAM.push(coords)
+    }
+  })
+  return newAM  
+}
+
 const filterAllowedMovement = (piece, chessboard) => {
-  const allowedMovementTemp = piece.allowedMovement()
+  let allowedMovementTemp = piece.allowedMovement()
   allowedMovementTemp.sort((a, b) => -a[0] + b[0]);
   for(let i = 0; i < allowedMovementTemp.length; i++) {
     const row = allowedMovementTemp[i][0]
     const col = allowedMovementTemp[i][1]
+    const allowedPiece = chessboard[row][col]
     const isPawnCapturing = allowedMovementTemp[i][2]
 
+    if(!allowedPiece) continue
     if(isPawnCapturing) 
       allowedMovementTemp[i].pop() 
 
-    if(chessboard[row][col] && chessboard[row][col].color === "thisSide") 
+    if(allowedPiece.color === "thisSide") 
       allowedMovementTemp[i] = []
     
-    if(piece.type==="Pawn" && (!chessboard[row][col] || chessboard[row][col].color === "thisSide") && isPawnCapturing) {
+    if(piece.type==="Pawn" && (!allowedPiece || allowedPiece.color === "thisSide") && isPawnCapturing) {
       allowedMovementTemp[i] = []
     } 
 
@@ -66,53 +105,49 @@ const filterAllowedMovement = (piece, chessboard) => {
         allowedMovementTemp[i] = []
       }
     }
-
-    if (piece.type === "Rook" || piece.type === "Queen") {
-      if (row !== piece.position[0]) {
-        const start = Math.min(row, piece.position[0]);
-        const end = Math.max(row, piece.position[0]);
-        for (let r = start + 1; r < end; r++) {
-          if (chessboard[r][col]) {
-            allowedMovementTemp[i] = [];
-            break;
-          }
-        }
-      } else if (col !== piece.position[1]) {
-        const start = Math.min(col, piece.position[1]);
-        const end = Math.max(col, piece.position[1]);
-        for (let c = start + 1; c < end; c++) {
-          if (chessboard[row][c]) {
-            allowedMovementTemp[i] = [];
-            break;
-          }
-        }
-      }
-    }
-
-    if (piece.type === "King") {
-      const rowDiff = Math.abs(row - piece.position[0]);
-      const colDiff = Math.abs(col - piece.position[1]);
-      if (rowDiff > 1 || colDiff > 1) {
-        allowedMovementTemp[i] = [];
+    
+    if(piece.type === "Bishop" || piece.type === "Queen" ) {
+      const allowedPieceDiagPos = checkDiag(piece.position, allowedPiece.position)
+      if(allowedPieceDiagPos) {
+        allowedMovementTemp = truncateAMDiag(allowedMovementTemp, allowedPiece, allowedPieceDiagPos)
       }
     }
     
-    if (piece.type === "Bishop" || piece.type === "Queen") {
-      const rowDiff = Math.abs(row - piece.position[0]);
-      const colDiff = Math.abs(col - piece.position[1]);
-      if (rowDiff === colDiff) {
-        const startRow = Math.min(row, piece.position[0]);
-        const endRow = Math.max(row, piece.position[0]);
-        const startCol = Math.min(col, piece.position[1]);
-        const endCol = Math.max(col, piece.position[1]);
-        for (let r = startRow + 1, c = startCol + 1; r < endRow; r++, c++) {
-          if (chessboard[r][c]) {
-            allowedMovementTemp[i] = [];
-            break;
-          }
-        }
+		
+  }
+  if(piece.type === "Rook" || piece.type === "Queen") {
+    const pieceRow = piece.position[0]
+    const pieceCol = piece.position[1]
+    let rowLimitTop=null, rowLimitBot=null, colLimitLeft=null, colLimitRight=null
+    for (let row = pieceRow + 1; row < 8; row++) {
+      if(chessboard[row][pieceCol]) { 
+        rowLimitBot = row 
+        break
       }
-    } 
+    }
+
+    for (let row = pieceRow - 1; row >= 0; row--) {
+      if(chessboard[row][pieceCol]) { 
+        rowLimitTop = row 
+        break
+      }
+    }
+
+    for (let col = pieceCol - 1; col >= 0; col--) {
+      if (chessboard[pieceRow][col]) {
+        colLimitLeft = col;
+        break;
+      }
+    }
+
+    for (let col = pieceCol + 1; col < 8; col++) {
+      if (chessboard[pieceRow][col]) {
+        colLimitRight = col;
+        break;
+      }
+    }
+
+    allowedMovementTemp = truncateAMStraight(allowedMovementTemp, rowLimitTop, rowLimitBot, colLimitLeft, colLimitRight, piece)
   }
   return allowedMovementTemp
 }
@@ -121,21 +156,17 @@ const pieceToClass = (piece, pieceObject) => {
   return new pieceObject(piece.color, [piece.position[0], piece.position[1]])
 }
 
-const isAlliedCheckmate = (chessboard) => {
-  const enemyKingAllowedMovement = filterAllowedMovement(enemyKing, chessboard)
-  for(let r = 0; r<8; r++) {
-    for(let c = 0; c < 8; c++) {
-      const alliedAllowedMovement = filterAllowedMovement(chessboard[r][c], chessboard)
-      alliedAllowedMovement.forEach(a => {
-        for(let i = 0; i<enemyKingAllowedMovement; i++) {
-          if(enemyKingAllowedMovement[i][0] === a[0] && enemyKingAllowedMovement[i][1] === a[1]) {
-            enemyKingAllowedMovement.splice(i, 1)
-          }
-        }
-      })
-    }
-  }
-  return enemyKingAllowedMovement.length 
+const isEnemyCheckmate = (chessboard) => {
+  let enemyKing
+  chessboard.forEach((row) => {
+    row.forEach((piece) => {
+      if(piece && piece.type === "King" && piece.color === "thatSide") {
+        enemyKing = piece
+        return
+      }
+    })
+  })
+  console.log(enemyKing)
 }
 
 export default function Chessboard(props) {
@@ -178,6 +209,7 @@ export default function Chessboard(props) {
           }
         })
       }))
+      isEnemyCheckmate(chessboard)
       setChessboard(newChessboard)
     }
   }, [props.newChessboard])
@@ -196,7 +228,7 @@ export default function Chessboard(props) {
     setAllowedMovement(null)
   };
 
-  const handleDragOver = (e, targetRow, targetCol) => {
+  const handleDragOver = (e) => {
     e.preventDefault();
   };
   
@@ -221,7 +253,6 @@ export default function Chessboard(props) {
     setDraggedPiece(null)
     setAllowedMovement([])
     props.sendNewChessboard(newChessboard)
-
     setChessboard(newChessboard)
   };
 
@@ -238,10 +269,11 @@ export default function Chessboard(props) {
                     key={colIndex}
                     className={`chessboard-cell ${cellColor}`}
                     onDragStart={e => handleDragStart(e, piece)}
-                    onDragOver={e => handleDragOver(e, rowIndex, colIndex)}
+                    onDragOver={e => handleDragOver(e)}
                     onDragEnd={handleDragEnd}
                     onDrop={(e) => handleDrop(e, rowIndex, colIndex)}
                   >
+                    <span id="coords">{rowIndex}, {colIndex}</span>
                     {piece && (
                       <div
                         className={`chess-piece ${

@@ -20,6 +20,10 @@ body {
     box-sizing: border-box;
 }
 
+body {
+    background-color: var(--backgroundColor);
+}
+
 .container {
     background-color: var(--backgroundColor);
     height: 100vh;
@@ -64,4 +68,8 @@ body {
     margin-top: 8px;
     color: red;
     font-family: 'Times New Roman', Times, serif;
+}
+
+#room-id {
+    color: white;
 }

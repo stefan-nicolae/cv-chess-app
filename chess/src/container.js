@@ -125,7 +125,6 @@ export default function Container () {
         toggleMyTurn()
     }
 
-
     if(isConnected && !roomIDRequested.current && !partner) {
         roomIDRequested.current = true
         sendWebSocketMessage(
@@ -151,7 +150,8 @@ export default function Container () {
     }
 
     if(isConnected && roomID && partner) return <div className="container">
-        <CapturedPieces capturedPieces={capturedPieces.enemy} ourTeam={ourTeam.current} theirTeam={theirTeam.current} roomID={roomID}/>
+        <span id="room-id">Room ID = {roomID}</span>
+        <CapturedPieces capturedPieces={capturedPieces.enemy} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
         <Chessboard setCapturedPieces={setCapturedPieces} capturedPieces={capturedPieces} ourTeam={ourTeam.current} 
             theirTeam={theirTeam.current} sendNewChessboard={sendNewChessboard}  newChessboard={newChessboard} isMyTurn={isMyTurn}/>
         <CapturedPieces capturedPieces={capturedPieces.allied} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
