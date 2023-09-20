@@ -1,0 +1,30 @@
+x Checkmate
+
+- Check: Detect when a king is under threat from an opponent's piece. The king must move out of check or block the check with another piece.
+
+- Stalemate: Recognize when a player has no legal moves left but is not in check. The game ends in a draw.
+
+- Draw by Threefold Repetition: Declare a draw if the same position occurs three times in a game with the same player to move.
+
+- Draw by Fifty-Move Rule: Declare a draw if no capture or pawn move has occurred in the last 50 consecutive moves by both players.
+
+- Draw by Insufficient Material: Recognize when neither player has sufficient material left on the board to deliver checkmate (e.g., king vs. king, king vs. king and bishop/knight).
+
+- Castling: Implement the rules for castling, including kingside and queenside castling. Ensure that the king and rook have not moved before.
+
+- En passant: Allow the capturing of a pawn "in passing" when a pawn moves two squares forward from its starting position and lands next to an opponent's pawn.
+
+- Promotion: Enable pawn promotion when a pawn reaches the opponent's back rank, allowing the player to choose a queen, rook, bishop, or knight as the promoted piece.
+
+- Draw Offers: Implement the ability for players to offer or accept draws during a game.
+
+- Resignation: Allow players to resign the game when they wish to concede.
+
+- Game Over: Properly declare the game over when a checkmate, stalemate, draw by repetition, draw by fifty-move rule, or other draw condition occurs.
+
+- Undo Move: Provide an option for players to undo their last move, with limitations to avoid abuse.
+
+- Draw Confirmation: Ask players for confirmation when a draw condition is met (e.g., threefold repetition) before declaring a draw.
+
+- Sound and Visual Feedback: Use sound effects, animations, or visual cues to indicate critical game events, such as check and checkmate.
+

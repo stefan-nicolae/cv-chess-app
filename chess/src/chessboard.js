@@ -5,6 +5,14 @@ import { pieceData, Pawn, Rook, Knight, Bishop, Queen, King } from "./pieces";
 const thisSide = "thisSide"
 const thatSide = "thatSide"
 
+function findCommonArrays(array1, array2) {
+  return array1.filter((arr1) =>
+    array2.some((arr2) =>
+      arr1.length === arr2.length && arr1.every((value, index) => value === arr2[index])
+    )
+  );
+}
+
 function arrayExistsInLibrary(array, library) {
   if(library === null) return false
   return library.some(subarray => {
@@ -88,33 +96,27 @@ const filterAllowedMovement = (piece, chessboard) => {
     const col = allowedMovementTemp[i][1]
     const allowedPiece = chessboard[row][col]
     const isPawnCapturing = allowedMovementTemp[i][2]
+    if(allowedMovementTemp[i][2]) allowedMovementTemp[i].pop()
 
-    if(!allowedPiece) continue
-    if(isPawnCapturing) 
-      allowedMovementTemp[i].pop() 
-
-    if(allowedPiece.color === "thisSide") 
+    if(allowedPiece && allowedPiece.color === "thisSide") 
       allowedMovementTemp[i] = []
     
-    if(piece.type==="Pawn" && (!allowedPiece || allowedPiece.color === "thisSide") && isPawnCapturing) {
+    if(piece.type === "Pawn" && isPawnCapturing && !allowedPiece) {
       allowedMovementTemp[i] = []
-    } 
-
-    if(piece.type==="Pawn" && chessboard[piece.position[0] - 1][piece.position[1]]) {
-      if(allowedMovementTemp[i][0] === piece.position[0] - 1 && allowedMovementTemp[i][1] === piece.position[1]) {
-        allowedMovementTemp[i] = []
-      }
     }
-    
-    if(piece.type === "Bishop" || piece.type === "Queen" ) {
+
+    if(allowedPiece && piece.type === "Pawn" && allowedMovementTemp[i][1] === piece.position[1] && allowedMovementTemp[i][0] === piece.position[0] - 1) {
+      allowedMovementTemp[i] = []
+    }
+
+    if(allowedPiece && (piece.type === "Bishop" || piece.type === "Queen" )) {
       const allowedPieceDiagPos = checkDiag(piece.position, allowedPiece.position)
       if(allowedPieceDiagPos) {
         allowedMovementTemp = truncateAMDiag(allowedMovementTemp, allowedPiece, allowedPieceDiagPos)
       }
-    }
-    
-		
+    }		
   }
+
   if(piece.type === "Rook" || piece.type === "Queen") {
     const pieceRow = piece.position[0]
     const pieceCol = piece.position[1]
@@ -149,7 +151,9 @@ const filterAllowedMovement = (piece, chessboard) => {
 
     allowedMovementTemp = truncateAMStraight(allowedMovementTemp, rowLimitTop, rowLimitBot, colLimitLeft, colLimitRight, piece)
   }
-  return allowedMovementTemp
+
+  return allowedMovementTemp.filter((arr) => arr.length > 0); 
+
 }
 
 const pieceToClass = (piece, pieceObject) => {
@@ -157,16 +161,23 @@ const pieceToClass = (piece, pieceObject) => {
 }
 
 const isEnemyCheckmate = (chessboard) => {
-  let enemyKing
+  let alliedKing
+  let allEnemyAllowedMovement = []
   chessboard.forEach((row) => {
     row.forEach((piece) => {
-      if(piece && piece.type === "King" && piece.color === "thatSide") {
-        enemyKing = piece
-        return
+      if(piece && piece.color === "thatSide") {
+        const pieceMovement = filterAllowedMovement(piece, chessboard)
+        allEnemyAllowedMovement = [...allEnemyAllowedMovement, ...pieceMovement]  
+      }
+      if(!alliedKing && piece && piece.type === "King" && piece.color === "thisSide") {
+        alliedKing = piece
       }
     })
   })
-  console.log(enemyKing)
+  const alliedKingMovement = filterAllowedMovement(alliedKing, chessboard)
+  if(!alliedKingMovement.length) return false
+  if(findCommonArrays(allEnemyAllowedMovement, alliedKingMovement).length === alliedKingMovement.length) return true
+  return false
 }
 
 export default function Chessboard(props) {
@@ -209,7 +220,7 @@ export default function Chessboard(props) {
           }
         })
       }))
-      isEnemyCheckmate(chessboard)
+      console.log("checkmate", isEnemyCheckmate(newChessboard))
       setChessboard(newChessboard)
     }
   }, [props.newChessboard])
