@@ -1,6 +1,6 @@
 x Checkmate
 
-- Check: Detect when a king is under threat from an opponent's piece. The king must move out of check or block the check with another piece.
+x Check: Detect when a king is under threat from an opponent's piece. The king must move out of check or block the check with another piece.
 
 - Stalemate: Recognize when a player has no legal moves left but is not in check. The game ends in a draw.
 

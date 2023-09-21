@@ -25,6 +25,14 @@
     background-color: rgb(255, 164, 164);
 }
 
+.red-piece {
+    background-color: red;
+}
+
+.chess-piece.blocked-piece {
+    user-select: none !important;
+}
+
 img {
     width: 64px;
     height: 64px;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./chessboard.css";
 import { pieceData, Pawn, Rook, Knight, Bishop, Queen, King } from "./pieces";
 
@@ -176,8 +176,16 @@ const isEnemyCheckmate = (chessboard) => {
   })
   const alliedKingMovement = filterAllowedMovement(alliedKing, chessboard)
   if(!alliedKingMovement.length) return false
-  if(findCommonArrays(allEnemyAllowedMovement, alliedKingMovement).length === alliedKingMovement.length) return true
+  if(findCommonArrays(allEnemyAllowedMovement, alliedKingMovement).length === alliedKingMovement.length) return {result: 'enemyCheckmate'}
+  if(findCommonArrays(allEnemyAllowedMovement, alliedKingMovement).length) return {result: 'enemyCheck', pos: alliedKing.position}
   return false
+}
+
+const enemyCheckLockedSquareClass = (rowIndex, colIndex, enemyCheck) => {
+  const alliedKingPos = enemyCheck.current
+  if(alliedKingPos) {
+    if(alliedKingPos[0] === rowIndex && alliedKingPos[1] === colIndex) return " red-piece"
+  } else return ""
 }
 
 export default function Chessboard(props) {
@@ -186,6 +194,7 @@ export default function Chessboard(props) {
   const [chessboard, setChessboard] = useState(initializeChessboard());
   const [allowedMovement, setAllowedMovement] = useState([])
   const [draggedPiece, setDraggedPiece] = useState()
+  const enemyCheck = useRef(false)
 
   useEffect(() => {
     if(props.newChessboard) {
@@ -220,13 +229,30 @@ export default function Chessboard(props) {
           }
         })
       }))
-      console.log("checkmate", isEnemyCheckmate(newChessboard))
+
+      const value = isEnemyCheckmate(newChessboard)
+      if(value) {
+        switch(value.result) {
+          case "enemyCheckmate":
+            props.sendWebSocketMessage({
+              "request": "enemyCheckmate" //IMPLEMENT
+            })
+            break
+          case "enemyCheck":
+            enemyCheck.current = value.pos
+            break
+        }
+      } else {
+        enemyCheck.current = false
+      }
       setChessboard(newChessboard)
     }
   }, [props.newChessboard])
-
+   
   const handleDragStart = (e, piece) => {
-    if(piece.color === "thatSide" || !props.isMyTurn)  {
+    if(piece.color === "thatSide" || !props.isMyTurn || 
+    (enemyCheck.current && !(enemyCheck.current[0] === piece.position[0] && enemyCheck.current[1] === piece.position[1]))) 
+    {
       e.preventDefault()
       return
     }
@@ -289,6 +315,8 @@ export default function Chessboard(props) {
                       <div
                         className={`chess-piece ${
                           piece.color === "thisSide" ? "user" : ""
+                        } ${
+                          enemyCheckLockedSquareClass(rowIndex, colIndex, enemyCheck)
                         }`}
                       >
                         <img src={pieceData[piece.type][(piece.color === "thisSide" ? ourTeam : theirTeam) === "black" ? 0 : 1]} alt={piece.type} />
