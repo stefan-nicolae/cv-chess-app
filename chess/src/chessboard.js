@@ -235,7 +235,8 @@ export default function Chessboard(props) {
         switch(value.result) {
           case "enemyCheckmate":
             props.sendWebSocketMessage({
-              "request": "enemyCheckmate" //IMPLEMENT
+              "request": "checkmate",
+              "winner": theirTeam
             })
             break
           case "enemyCheck":

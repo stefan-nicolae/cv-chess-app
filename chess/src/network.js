@@ -7,27 +7,27 @@ function useWebSocket(onReceive) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const newSocket = new WebSocket(WebSocketHost);
-
-    newSocket.onopen = () => {
-      setIsConnected(true);
-      console.log("CONNECTED")
-    };
-
-    newSocket.onmessage = (event) => {
-      const data = event.data;
-      onReceive(data)
-    };
-
-    newSocket.onclose = () => {
-      setIsConnected(false);
-    };
-
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.close();
-    };
+      const newSocket = new WebSocket(WebSocketHost);
+    
+      newSocket.onopen = () => {
+        setIsConnected(true);
+        console.log("CONNECTED")
+      };
+    
+      newSocket.onmessage = (event) => {
+        const data = event.data;
+        onReceive(data)
+      };
+    
+      newSocket.onclose = () => {
+        setIsConnected(false);
+      };
+    
+      setSocket(newSocket);
+    
+      return () => {
+        newSocket.close();
+      };
   }, []);
 
   const sendWebSocketMessage = (message) => {

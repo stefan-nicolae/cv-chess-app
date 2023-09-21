@@ -73,3 +73,48 @@ body {
 #room-id {
     color: white;
 }
+
+.game-over {
+    z-index: 3;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.game-over-shadow {
+    background-color: black;
+    z-index: 4;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100vh;
+    opacity: 0.8;
+}
+
+.game-over-info {
+    z-index: 5;
+    color: white;
+    width: 256px;
+    height: 128px;
+    position: absolute;
+    text-align: center;
+    left: calc(50% - 128px);
+    top: calc(50vh - 64px);
+    background-color: rgb(34, 34, 34);
+    border: 4px solid rgb(129, 129, 129);
+}
+
+.game-over-info h2 {
+    text-transform: capitalize;
+}
+
+.game-over button {
+    margin-top: 8px;
+    padding: 8px;
+    cursor: pointer;
+}

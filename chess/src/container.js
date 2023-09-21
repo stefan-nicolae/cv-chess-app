@@ -31,18 +31,22 @@ export default function Container () {
     const [partner, setPartner] = useState(false)
     const [newChessboard, setNewChessboard] = useState()
     const [isMyTurn, setMyTurn] = useState(false)
+    const [winner, setWinner] = useState(false)
     const inputRef = useRef(null);
     const roomIDRequested = useRef(false);
     const ourTeam = useRef(null);
     const theirTeam = useRef(null);
     const skipCapturedPieceRequest = useRef(false)
-
+    
+    const queryParams = new URLSearchParams(window.location.search);
+    const URLroomID = queryParams.get("roomID");
+    
     const toggleMyTurn = () => {
         if(isMyTurn) setMyTurn(false) 
         else setMyTurn(true)
-    }
+}
 
-    const onReceive = (receivedMessage) =>  {
+const onReceive = (receivedMessage) =>  {
         console.log("RECEIVED " + receivedMessage)
         receivedMessage = JSON.parse(receivedMessage)
         switch(receivedMessage.response) {
@@ -79,12 +83,14 @@ export default function Container () {
                 skipCapturedPieceRequest.current = true
                 setCapturedPieces(object)
                 break
+            case "GAMEOVER":
+                setWinner(receivedMessage.winner)
+                break
         }
     }
 
     useEffect(() => {
         if(!skipCapturedPieceRequest.current) {
-            console.log("captured pieces changed")
             sendWebSocketMessage({
                 "request": "capturedPiece",
                 "value": JSON.stringify(capturedPieces)
@@ -100,7 +106,7 @@ export default function Container () {
     }, [partner])
 
     const { isConnected, sendWebSocketMessage } = useWebSocket(onReceive);
-    const [roomID, setRoomID] = useState()
+    const [roomID, setRoomID] = useState(URLroomID)
     const [Error, setError] = useState()
 
     const joinRoom = () => {
@@ -127,11 +133,19 @@ export default function Container () {
 
     if(isConnected && !roomIDRequested.current && !partner) {
         roomIDRequested.current = true
-        sendWebSocketMessage(
-            { 
-                "request": "requestRoomID"
-            }
-        )
+        if(URLroomID) {
+            sendWebSocketMessage(
+                {
+                    //IMPLEMENT
+                }
+            )
+        } else {
+            sendWebSocketMessage(
+                { 
+                    "request": "requestRoomID"
+                }
+            )
+        }
         return <div className="container">
             <span style={{"color": "white"}}>Finding Room ID...</span>
         </div>
@@ -150,6 +164,14 @@ export default function Container () {
     }
 
     if(isConnected && roomID && partner) return <div className="container">
+        {winner ? <div className="game-over">
+            <div className="game-over-shadow"></div>
+            <div className="game-over-info">
+                <h1>Game is Over</h1>
+                <h2>{winner } side won</h2>
+                <button>Leave Game</button>
+            </div>
+        </div> : ""}
         <span id="room-id">Room ID = {roomID}</span>
         <CapturedPieces capturedPieces={capturedPieces.enemy} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
         <Chessboard setCapturedPieces={setCapturedPieces} capturedPieces={capturedPieces} ourTeam={ourTeam.current} 
