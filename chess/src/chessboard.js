@@ -235,9 +235,10 @@ export default function Chessboard(props) {
         switch(value.result) {
           case "enemyCheckmate":
             props.sendWebSocketMessage({
-              "request": "checkmate",
-              "winner": theirTeam
+              "request": "checkmateWinner",
+              "value": theirTeam
             })
+            props.setWinner(theirTeam)
             break
           case "enemyCheck":
             enemyCheck.current = value.pos

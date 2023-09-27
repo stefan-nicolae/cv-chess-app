@@ -39,14 +39,16 @@ export default function Container () {
     const skipCapturedPieceRequest = useRef(false)
     
     const queryParams = new URLSearchParams(window.location.search);
-    const URLroomID = queryParams.get("roomID");
+    let URLroomID = queryParams.get("roomID");
+    if(isNaN(URLroomID)) URLroomID = undefined
+    
     
     const toggleMyTurn = () => {
         if(isMyTurn) setMyTurn(false) 
         else setMyTurn(true)
 }
 
-const onReceive = (receivedMessage) =>  {
+const onReceive = (receivedMessage, sendWebSocketMessage) =>  {
         console.log("RECEIVED " + receivedMessage)
         receivedMessage = JSON.parse(receivedMessage)
         switch(receivedMessage.response) {
@@ -83,8 +85,8 @@ const onReceive = (receivedMessage) =>  {
                 skipCapturedPieceRequest.current = true
                 setCapturedPieces(object)
                 break
-            case "GAMEOVER":
-                setWinner(receivedMessage.winner)
+            case "checkmateWinner":
+                setWinner(receivedMessage.value)
                 break
         }
     }
@@ -105,7 +107,7 @@ const onReceive = (receivedMessage) =>  {
         }
     }, [partner])
 
-    const { isConnected, sendWebSocketMessage } = useWebSocket(onReceive);
+    const { isConnected, sendWebSocketMessage } = useWebSocket((receivedMessage) => onReceive(receivedMessage, sendWebSocketMessage));
     const [roomID, setRoomID] = useState(URLroomID)
     const [Error, setError] = useState()
 
@@ -136,7 +138,8 @@ const onReceive = (receivedMessage) =>  {
         if(URLroomID) {
             sendWebSocketMessage(
                 {
-                    //IMPLEMENT
+                    "request": "URLroomID",
+                    "value": URLroomID
                 }
             )
         } else {
@@ -167,15 +170,15 @@ const onReceive = (receivedMessage) =>  {
         {winner ? <div className="game-over">
             <div className="game-over-shadow"></div>
             <div className="game-over-info">
-                <h1>Game is Over</h1>
-                <h2>{winner } side won</h2>
+                <h1>Game Over</h1>
+                <h2>{winner} side won</h2>
                 <button>Leave Game</button>
             </div>
         </div> : ""}
         <span id="room-id">Room ID = {roomID}</span>
         <CapturedPieces capturedPieces={capturedPieces.enemy} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
         <Chessboard setCapturedPieces={setCapturedPieces} capturedPieces={capturedPieces} ourTeam={ourTeam.current} 
-            theirTeam={theirTeam.current} sendNewChessboard={sendNewChessboard} newChessboard={newChessboard} isMyTurn={isMyTurn} sendWebSocketMessage={sendWebSocketMessage}/>
+            theirTeam={theirTeam.current} sendNewChessboard={sendNewChessboard} newChessboard={newChessboard} isMyTurn={isMyTurn} sendWebSocketMessage={sendWebSocketMessage} setWinner={setWinner}/>
         <CapturedPieces capturedPieces={capturedPieces.allied} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
     </div>
 

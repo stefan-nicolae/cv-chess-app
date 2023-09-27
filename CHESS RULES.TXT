@@ -20,9 +20,7 @@ x Check: Detect when a king is under threat from an opponent's piece. The king m
 
 - Resignation: Allow players to resign the game when they wish to concede.
 
-- Game Over: Properly declare the game over when a checkmate, stalemate, draw by repetition, draw by fifty-move rule, or other draw condition occurs.
-
-- Undo Move: Provide an option for players to undo their last move, with limitations to avoid abuse.
+x Game Over: Properly declare the game over when a checkmate, stalemate, draw by repetition, draw by fifty-move rule, or other draw condition occurs.
 
 - Draw Confirmation: Ask players for confirmation when a draw condition is met (e.g., threefold repetition) before declaring a draw.
 
