@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 const PRODUCTION = false
 
-const WebSocketHost = PRODUCTION ? 'https://chess-app-server-6isz.onrender.com/' : 'ws://localhost:8080'; 
+const WebSocketHost = PRODUCTION ? 'wss://chess-app-server-6isz.onrender.com/' : 'ws://localhost:8080'; 
 
 function useWebSocket(onReceive) {
   const [socket, setSocket] = useState(null);
