@@ -5,18 +5,21 @@ x Implement TURNS
     x At game start, set ismyturn to true if team is white, 
     x Toggle ismyturn when sending a movement, and when receiving a movement
     x You can't send a movement if ismyturn = false
-- Do and test all game rules
-
+x Do and test all game rules
 x put the roomID message above
 x fix a bug whwere ismyturn goes to false even if you dont actually move anything
-- Connect to someone with same roomID
-- Stuck on connecting to the server...
-- Get kicked out if ROOM is deleted
+x Connect to someone with same roomID
+x Stuck on connecting to the server...
 
+- Get kicked out if ROOM is deleted
+- Remove "React App" from the title
+- Remove junk from /public 
+- Message to show whose turn it is
+- Remove all comments and semicolons and make the code pretty
 
 - Do mobile version
 - Prettify it
-- Remove all comments and semicolons and make the code pretty
+
 
 
 
