@@ -70,8 +70,29 @@ body {
     font-family: 'Times New Roman', Times, serif;
 }
 
-#room-id {
+.container > .info {
     color: white;
+    display: flex;
+    justify-content: space-between;
+    width: 512px;
+    margin-top: 8px;
+    align-content: center;
+}
+
+.container > .info span:first-of-type {
+    color: rgb(146, 146, 146);
+}
+
+.container button {
+    background: none;
+    border: 1px solid rgb(114, 114, 114);
+    padding: 2px 4px;
+    color: white;
+    cursor: pointer;
+}
+
+.container button:hover {
+    background-color: rgb(39, 39, 39);
 }
 
 .game-over {

@@ -312,7 +312,6 @@ export default function Chessboard(props) {
                     onDragEnd={handleDragEnd}
                     onDrop={(e) => handleDrop(e, rowIndex, colIndex)}
                   >
-                    <span id="coords">{rowIndex}, {colIndex}</span>
                     {piece && (
                       <div
                         className={`chess-piece ${

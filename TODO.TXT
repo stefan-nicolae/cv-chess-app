@@ -10,16 +10,20 @@ x put the roomID message above
 x fix a bug whwere ismyturn goes to false even if you dont actually move anything
 x Connect to someone with same roomID
 x Stuck on connecting to the server...
+x Remove "React App" from the title
+x Remove junk from /public 
+x Message to show whose turn it is
+x Get kicked out if ROOM is deleted
+x Draw button
+x Don't join your own room, a full one, or one that doesn't exist
+x When partner is set to "done", reset the entire thing
 
-- Get kicked out if ROOM is deleted
-- Remove "React App" from the title
-- Remove junk from /public 
-- Message to show whose turn it is
-- Remove all comments and semicolons and make the code pretty
-
+- Insert sound
+- Prettify it 
+    - colors in :root
+    - common button design
 - Do mobile version
-- Prettify it
-
+- Remove all comments and semicolons and make the code pretty
 
 
 
