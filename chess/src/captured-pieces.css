@@ -1,12 +1,21 @@
 .captured-pieces {
-    height: 128px;
-    min-height: 128px;
-    width: 512px;
+    max-width: 512px;
+    width: 100%;
     background-color: rgb(95, 95, 95);
     display: flex;
     flex-wrap: wrap;
 }
 
+.captured-pieces img {
+    width: 100%;
+}
+
 .captured-pieces img:hover {
     opacity: 1;
+}
+
+.captured-piece {
+    width: 12.5%;
+    aspect-ratio: 1;
+    width: 10;
 }

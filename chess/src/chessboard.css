@@ -1,16 +1,17 @@
 .chessboard {
-    width: 512px;
     display: flex;
     flex-direction: column;
+    max-width: 512px;
+    width: 100%;
 }
 
 .chessboard-row {
-    height: 64px;
     display: flex;
 }
 
 .chessboard-cell {
-    width: 64px;
+    flex: 1; 
+    aspect-ratio: 1; 
 }
 
 .white-cell {
@@ -34,8 +35,8 @@
 }
 
 img {
-    width: 64px;
-    height: 64px;
+    width: 100%;
+    aspect-ratio: 1; 
 }
 
 .chess-piece.user img {
@@ -50,3 +51,4 @@ img:hover {
     position: absolute;
     font-size: 50%;
 }
+

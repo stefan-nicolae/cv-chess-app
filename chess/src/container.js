@@ -114,7 +114,7 @@ export default function Container () {
 
     useEffect(() => {
         if(partner === "done") {
-            window.location.reload();
+            window.location.href = window.location.origin;
         }
         if(partner && ourTeam.current === "white") {
             setMyTurn(true)

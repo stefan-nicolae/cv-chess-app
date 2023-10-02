@@ -48,22 +48,6 @@ body {
     padding: 8px;
 }
 
-.container.menu button {
-    background-color: rgb(255, 187, 0);
-    width: 128px;
-    height: 32px;
-    border-radius: 8px;
-    border: 0;
-    cursor: pointer;
-    font-weight: bold;
-    margin-top: 8px;
-}
-
-.container.menu button:hover {
-    opacity: 0.5;
-}
-
-
 .container.menu .error {
     margin-top: 8px;
     color: red;
@@ -74,7 +58,8 @@ body {
     color: white;
     display: flex;
     justify-content: space-between;
-    width: 512px;
+    max-width: 512px;
+    width: 100%;
     margin-top: 8px;
     align-content: center;
 }
@@ -83,21 +68,8 @@ body {
     color: rgb(146, 146, 146);
 }
 
-.container button {
-    background: none;
-    border: 1px solid rgb(114, 114, 114);
-    padding: 2px 4px;
-    color: white;
-    cursor: pointer;
-}
-
-.container button:hover {
-    background-color: rgb(39, 39, 39);
-}
-
 .game-over {
     z-index: 3;
-
     position: absolute;
     top: 0;
     left: 0;
@@ -108,7 +80,6 @@ body {
 .game-over-shadow {
     background-color: black;
     z-index: 4;
-
     position: absolute;
     top: 0;
     left: 0;
@@ -127,15 +98,33 @@ body {
     left: calc(50% - 128px);
     top: calc(50vh - 64px);
     background-color: rgb(34, 34, 34);
-    border: 4px solid rgb(129, 129, 129);
+    border: 1px solid rgb(129, 129, 129);
 }
 
 .game-over-info h2 {
     text-transform: capitalize;
 }
 
-.game-over button {
+.game-over-info button {
     margin-top: 8px;
-    padding: 8px;
+}
+
+button {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
 }
+
+@media (max-width: 576px) {
+    .container {
+        padding: 8px;
+        font-size: 80%;
+
+    }
+
+    .container button {
+        font-size: 80%;
+    }
+  }
+  
