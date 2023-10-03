@@ -37,10 +37,22 @@ body {
 .container.menu {
     color: white;
     user-select: unset;
+    text-align: center;
+}
+
+.container.menu button {
+    margin-top: 8px;
+    font-size: 100% !important;
+}
+
+.container.menu h2 {
+    margin: 8px 0;
 }
 
 .container.menu input {
-    margin-top: 32px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+
     height: 32px;
     width: 256px;
     border-radius: 8px;
@@ -54,14 +66,27 @@ body {
     font-family: 'Times New Roman', Times, serif;
 }
 
+.container.menu h1, .container.menu h2 {
+    user-select: none;
+}
+
+.container.menu span:first-of-type {
+    margin-top: 8px;
+    border: 1px solid gray;
+    padding: 2px 4px;
+    color: rgb(158, 158, 158);
+    font-size: 150%;
+    border-radius: 8px;
+}
+
 .container > .info {
     color: white;
     display: flex;
     justify-content: space-between;
     max-width: 512px;
     width: 100%;
-    margin-top: 8px;
     align-content: center;
+    margin-top: 4px;
 }
 
 .container > .info span:first-of-type {
@@ -90,7 +115,7 @@ body {
 
 .game-over-info {
     z-index: 5;
-    color: white;
+    color: rgb(164, 164, 164);
     width: 256px;
     height: 128px;
     position: absolute;
@@ -99,6 +124,8 @@ body {
     top: calc(50vh - 64px);
     background-color: rgb(34, 34, 34);
     border: 1px solid rgb(129, 129, 129);
+    font-size: 80%;
+    padding-top: 8px;
 }
 
 .game-over-info h2 {
@@ -114,6 +141,8 @@ button {
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    background-color: rgb(185, 98, 98);
+    color: white;
 }
 
 @media (max-width: 576px) {
@@ -125,6 +154,18 @@ button {
 
     .container button {
         font-size: 80%;
+    }
+
+    .container.menu .error {
+        font-size: 125%;
+    }
+
+    .container.menu h2 {
+        font-size: 125%;
+    }
+    
+    .container.menu h1 {
+        font-size: 150%;
     }
   }
   

@@ -168,7 +168,8 @@ export default function Container () {
         return(
             <div className="container menu">
                 <h2>Welcome to the Chess App</h2>
-                <h1>Send this ID to anyone to join: {roomID}</h1>    
+                <h1>Send this ID to anyone to join:</h1>
+                <span>{roomID}</span>    
                 <input ref={inputRef} type="text" placeholder="Or join a room yourself"></input>
                 <button onClick={() => joinRoom() }>Join Room!</button>
                 <span className="error">{Error}</span>
@@ -180,7 +181,7 @@ export default function Container () {
         {winner ? <div className="game-over">
             <div className="game-over-shadow"></div>
             <div className="game-over-info">
-                <h1>Game Over {cap(winner)} side won</h1>
+                <h1>Game Over<br></br> {cap(winner)} side won</h1>
                 <button onClick={() => {setPartner("done")}}>Leave Game</button> 
             </div>
         </div> : ""}
