@@ -87,6 +87,8 @@ body {
     width: 100%;
     align-content: center;
     margin-top: 4px;
+    user-select: none;
+    padding-bottom: 4px;
 }
 
 .container > .info span:first-of-type {
@@ -100,6 +102,7 @@ body {
     left: 0;
     width: 100%;
     min-height: 100vh;
+    user-select: none;
 }
 
 .game-over-shadow {
@@ -143,13 +146,13 @@ button {
     cursor: pointer;
     background-color: rgb(185, 98, 98);
     color: white;
+    user-select: none;
 }
 
 @media (max-width: 576px) {
     .container {
         padding: 8px;
         font-size: 80%;
-
     }
 
     .container button {
