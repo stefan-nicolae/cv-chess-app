@@ -46,7 +46,6 @@ export default function Container () {
     
     const queryParams = new URLSearchParams(window.location.search);
     let URLroomID = queryParams.get("roomID");
-    if(isNaN(URLroomID)) URLroomID = undefined
     const [roomID, setRoomID] = useState(URLroomID)
     
     const toggleMyTurn = () => {
