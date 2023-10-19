@@ -153,6 +153,8 @@ button {
     .container {
         padding: 8px;
         font-size: 80%;
+        max-height: 100vh;
+        overflow-y: hidden;
     }
 
     .container button {
