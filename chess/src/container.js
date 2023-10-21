@@ -54,7 +54,7 @@ export default function Container () {
     }
 
     const onReceive = (receivedMessage, sendWebSocketMessage) =>  {
-            console.log("RECEIVED " + receivedMessage)
+            // console.log("RECEIVED " + receivedMessage)
             receivedMessage = JSON.parse(receivedMessage)
             switch(receivedMessage.response) {
                 case "roomID":
@@ -134,7 +134,7 @@ export default function Container () {
     }
 
     const sendNewChessboard = (newChessboard) => {
-        console.log(newChessboard)
+        // console.log(newChessboard)
         sendWebSocketMessage({
             "request": "newChessboard",
             "value": JSON.stringify(flipChessboard(newChessboard))

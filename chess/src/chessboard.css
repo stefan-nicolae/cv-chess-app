@@ -12,6 +12,7 @@
 .chessboard-cell {
     flex: 1; 
     aspect-ratio: 1; 
+    text-align: center;
 }
 
 .white-cell {
@@ -35,8 +36,7 @@
 }
 
 img {
-    width: 100%;
-    aspect-ratio: 1; 
+    width: 90%;
 }
 
 .chess-piece.user img {

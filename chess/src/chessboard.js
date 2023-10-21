@@ -195,6 +195,8 @@ export default function Chessboard(props) {
   const [allowedMovement, setAllowedMovement] = useState([])
   const [draggedPiece, setDraggedPiece] = useState()
   const enemyCheck = useRef(false)
+  const touchTargetCol = useRef(0);
+  const touchTargetRow = useRef(0);
 
   useEffect(() => {
     if(props.newChessboard) {
@@ -256,11 +258,12 @@ export default function Chessboard(props) {
     (enemyCheck.current && !(enemyCheck.current[0] === piece.position[0] && enemyCheck.current[1] === piece.position[1]))) 
     {
       e.preventDefault()
-      return
+      return false
     }
-    e.dataTransfer.setData("text/plain", ""); 
+    if(e.dataTransfer) e.dataTransfer.setData("text/plain", ""); 
     setDraggedPiece(piece)
     setAllowedMovement(filterAllowedMovement(piece, chessboard))
+    return true
   };
   
   const handleDragEnd = () => {
@@ -272,6 +275,7 @@ export default function Chessboard(props) {
   };
   
   const handleDrop = (e, targetRow, targetCol) => {
+    console.log(targetRow, targetCol)
     e.preventDefault();
     const isMoveAllowed = allowedMovement.some(move => {
       return move[0] === targetRow && move[1] === targetCol;
@@ -295,6 +299,30 @@ export default function Chessboard(props) {
     setChessboard(newChessboard)
   };
 
+  const pixelsToSquare = (pixelX, pixelY) => {
+    const size = document.querySelector(".chessboard-cell").clientWidth
+    const squareX = Math.floor(pixelX/size)
+    const squareY = Math.floor(pixelY/size)
+    return [squareX, squareY]    
+  }
+
+  const handleTouchStart = () => {
+    console.log("touch start") 
+  }
+
+  const handleTouchMove = (e, piece) => {
+    if(!handleDragStart(e, piece)) return
+    if (e.touches.length === 1) {
+      const touchX = e.touches[0].clientX;
+      let touchY = e.touches[0].clientY - document.querySelector(".captured-pieces").clientHeight;
+      [touchTargetCol.current, touchTargetRow.current] = pixelsToSquare(touchX, touchY)
+    }
+  }
+
+  const handleTouchEnd = (e) => {
+    handleDrop(e, touchTargetRow.current, touchTargetCol.current)
+  }
+
   return (
     <div className="chessboard">
       {chessboard.map((row, rowIndex) => (
@@ -311,6 +339,10 @@ export default function Chessboard(props) {
                     onDragOver={e => handleDragOver(e)}
                     onDragEnd={handleDragEnd}
                     onDrop={(e) => handleDrop(e, rowIndex, colIndex)}
+
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={e => handleTouchMove(e, piece)}
+                    onTouchEnd={e => handleTouchEnd(e)}
                   >
                     {piece && (
                       <div
