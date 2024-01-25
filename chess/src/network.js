@@ -17,6 +17,7 @@ function useWebSocket(onReceive) {
     
       newSocket.onmessage = (event) => {
         const data = event.data;
+        console.log("received" + data)
         onReceive(data)
       };
     
@@ -33,7 +34,7 @@ function useWebSocket(onReceive) {
 
   const sendWebSocketMessage = (message) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
-      // console.log('SENDING ' + JSON.stringify(message))
+      console.log('SENDING ' + JSON.stringify(message))
       socket.send(JSON.stringify(message));
  
     }
