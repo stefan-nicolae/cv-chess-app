@@ -54,10 +54,9 @@ export default function Container () {
     }
 
     const onReceive = (receivedMessage, sendWebSocketMessage) =>  {
-            // console.log("RECEIVED " + receivedMessage)
             receivedMessage = JSON.parse(receivedMessage)
             switch(receivedMessage.response) {
-                case "roomID":
+                case "yourID":
                     setRoomID(receivedMessage.value)
                     break 
                 case "roomError":
