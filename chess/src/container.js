@@ -45,7 +45,8 @@ export default function Container () {
     const [Error, setError] = useState()
     
     const queryParams = new URLSearchParams(window.location.search);
-    let URLroomID = queryParams.get("roomID").length >= 8 ?  queryParams.get("roomID") : undefined;
+    let URLroomID
+    if(queryParams.get("roomID")) URLroomID = queryParams.get("roomID").length >= 8 ?  queryParams.get("roomID") : undefined;
     const [roomID, setRoomID] = useState(URLroomID)
     
     const toggleMyTurn = () => {
