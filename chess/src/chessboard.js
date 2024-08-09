@@ -322,14 +322,16 @@ export default function Chessboard(props) {
   const handleTouchEnd = (e) => {
     handleDrop(e, touchTargetRow.current, touchTargetCol.current)
   }
-
+  console.log(thisSide)
   return (
     <div className="chessboard">
       {chessboard.map((row, rowIndex) => (
         <div key={rowIndex} className="chessboard-row">
               {row.map((piece, colIndex) => {
-                let cellColor =
-                  (rowIndex + colIndex) % 2 === 0 ? "white-cell" : "gray-cell";
+                let cellColor = ourTeam === "white" ? 
+                  (rowIndex + colIndex) % 2  == 0 ? "white-cell" : "gray-cell" :
+                  (rowIndex + colIndex) % 2 !== 0 ? "white-cell" : "gray-cell"
+                
                 if(arrayExistsInLibrary([rowIndex, colIndex], allowedMovement)) cellColor += " red-cell"
                 return (
                   <div

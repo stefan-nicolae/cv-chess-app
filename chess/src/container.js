@@ -19,7 +19,7 @@ function flipChessboard(chessboard) {
         if (piece !== null) {
           const newPiece = {
             color: piece.color === "thisSide" ? "thatSide" : "thisSide",
-            position: [7 - row, 7 - col], 
+            position: [7 - row, col], 
             type: piece.type 
           };
           flippedChessboard[7 - row][7 - col] = newPiece;
