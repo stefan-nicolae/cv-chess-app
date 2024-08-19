@@ -8,7 +8,6 @@ function cap(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
   
-
 function flipChessboard(chessboard) {
     const flippedChessboard = [];
   
@@ -43,6 +42,7 @@ export default function Container () {
     const theirTeam = useRef(null);
     const skipCapturedPieceRequest = useRef(false)
     const [Error, setError] = useState()
+    const [retrievablePieces, setRetrievablePieces] = useState()
     
     const queryParams = new URLSearchParams(window.location.search);
     let URLroomID
@@ -122,7 +122,7 @@ export default function Container () {
 
     const joinRoom = () => {
         if (inputRef.current) {
-            console.log("joining room")
+            // console.log("joining room")
             const inputValue = inputRef.current.value;
             sendWebSocketMessage(
                 {
@@ -134,7 +134,6 @@ export default function Container () {
     }
 
     const sendNewChessboard = (newChessboard) => {
-        // console.log(newChessboard)
         sendWebSocketMessage({
             "request": "newChessboard",
             "value": JSON.stringify(flipChessboard(newChessboard))
@@ -186,8 +185,9 @@ export default function Container () {
         </div> : ""}
         <CapturedPieces capturedPieces={capturedPieces.enemy} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
         <Chessboard setCapturedPieces={setCapturedPieces} capturedPieces={capturedPieces} ourTeam={ourTeam.current} 
-            theirTeam={theirTeam.current} sendNewChessboard={sendNewChessboard} newChessboard={newChessboard} isMyTurn={isMyTurn} sendWebSocketMessage={sendWebSocketMessage} setWinner={setWinner}/>
-        <CapturedPieces capturedPieces={capturedPieces.allied} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
+            theirTeam={theirTeam.current} sendNewChessboard={sendNewChessboard} newChessboard={newChessboard} 
+            isMyTurn={isMyTurn} sendWebSocketMessage={sendWebSocketMessage} setWinner={setWinner} setRetrievablePieces={setRetrievablePieces}/>
+        <CapturedPieces capturedPieces={capturedPieces.allied} ourTeam={ourTeam.current} theirTeam={theirTeam.current} retrievablePieces={retrievablePieces}/>
         <div className="info">
             <span>Room ID = {roomID}</span>
             <span>{(isMyTurn ? ourTeam.current : theirTeam.current) + "'s turn"}</span>

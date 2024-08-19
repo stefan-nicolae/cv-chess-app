@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-const PRODUCTION = true
+const PRODUCTION = false
 
 const WebSocketHost = PRODUCTION ? 'wss://vladolteanu.com/stfn/chess-app' : 'ws://localhost:8080'; 
 
@@ -12,12 +12,12 @@ function useWebSocket(onReceive) {
     
       newSocket.onopen = () => {
         setIsConnected(true);
-        console.log("CONNECTED")
+        // console.log("CONNECTED")
       };
     
       newSocket.onmessage = (event) => {
         const data = event.data;
-        console.log("received" + data)
+        // console.log("received" + data)
         onReceive(data)
       };
     
@@ -34,7 +34,7 @@ function useWebSocket(onReceive) {
 
   const sendWebSocketMessage = (message) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
-      console.log('SENDING ' + JSON.stringify(message))
+      // console.log('SENDING ' + JSON.stringify(message))
       socket.send(JSON.stringify(message));
  
     }

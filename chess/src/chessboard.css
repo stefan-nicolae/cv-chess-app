@@ -13,6 +13,7 @@
     flex: 1; 
     aspect-ratio: 1; 
     text-align: center;
+    position: relative;
 }
 
 .white-cell {
@@ -49,6 +50,7 @@ img:hover {
 
 #coords {
     position: absolute;
-    font-size: 50%;
+    font-size: 80%;
+    bottom: 2px;
+    right: 2px;
 }
-

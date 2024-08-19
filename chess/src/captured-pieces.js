@@ -11,10 +11,12 @@ export default function CapturedPieces (props) {
         color: "dummy",
     }));
 
+    console.log(props.retrievablePieces)
+
     return (
         <div className="captured-pieces">
             {props.capturedPieces.map((piece, index) => (
-            <div key={index} className="captured-piece">
+            <div key={index} className={`captured-piece`}>  
                 <img
                 draggable="false"
                 src={pieceData[piece.type][

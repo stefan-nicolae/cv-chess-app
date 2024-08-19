@@ -2,8 +2,18 @@ import React, { useEffect, useState, useRef } from "react";
 import "./chessboard.css";
 import { pieceData, Pawn, Rook, Knight, Bishop, Queen, King } from "./pieces";
 
-const thisSide = "thisSide"
-const thatSide = "thatSide"
+function filterSpecificArray(arrayOfArrays, arrayToFilterOut) {
+  return arrayOfArrays.filter(arr => {
+    return !(arr.length === arrayToFilterOut.length && arr.every((value, index) => value === arrayToFilterOut[index]));
+  });
+}
+
+function flipCoordinate(coord){
+  const newCoord = []
+  newCoord[0] = 7 - coord[0]
+  newCoord[1] = 7 - coord[1]
+  return newCoord
+}
 
 function findCommonArrays(array1, array2) {
   return array1.filter((arr1) =>
@@ -24,28 +34,28 @@ const initializeChessboard = () => {
   const initialChessboard = Array.from({ length: 8 }, () =>
   Array(8).fill(null)
   );
-  initialChessboard[0][0] = new Rook(thatSide, [0, 0]);
-  initialChessboard[0][1] = new Knight(thatSide, [0, 1]);
-  initialChessboard[0][2] = new Bishop(thatSide, [0, 2]);
-  initialChessboard[0][3] = new Queen(thatSide, [0, 3]);
-  initialChessboard[0][4] = new King(thatSide, [0, 4]);
-  initialChessboard[0][5] = new Bishop(thatSide, [0, 5]);
-  initialChessboard[0][6] = new Knight(thatSide, [0, 6]);
-  initialChessboard[0][7] = new Rook(thatSide, [0, 7]);
+  initialChessboard[0][0] = new Rook("thatSide", [0, 0]);
+  initialChessboard[0][1] = new Knight("thatSide", [0, 1]);
+  initialChessboard[0][2] = new Bishop("thatSide", [0, 2]);
+  initialChessboard[0][3] = new Queen("thatSide", [0, 3]);
+  initialChessboard[0][4] = new King("thatSide", [0, 4]);
+  initialChessboard[0][5] = new Bishop("thatSide", [0, 5]);
+  initialChessboard[0][6] = new Knight("thatSide", [0, 6]);
+  initialChessboard[0][7] = new Rook("thatSide", [0, 7]);
   for (let i = 0; i < 8; i++) {
-    initialChessboard[1][i] = new Pawn(thatSide, [1, i]);
+    initialChessboard[1][i] = new Pawn("thatSide", [1, i]);
   }
 
-  initialChessboard[7][0] = new Rook(thisSide, [7, 0]);
-  initialChessboard[7][1] = new Knight(thisSide, [7, 1]);
-  initialChessboard[7][2] = new Bishop(thisSide, [7, 2]);
-  initialChessboard[7][3] = new Queen(thisSide, [7, 3]);
-  initialChessboard[7][4] = new King(thisSide, [7, 4]);
-  initialChessboard[7][5] = new Bishop(thisSide, [7, 5]);
-  initialChessboard[7][6] = new Knight(thisSide, [7, 6]);
-  initialChessboard[7][7] = new Rook(thisSide, [7, 7]);
+  initialChessboard[7][0] = new Rook("thisSide", [7, 0]);
+  initialChessboard[7][1] = new Knight("thisSide", [7, 1]);
+  initialChessboard[7][2] = new Bishop("thisSide", [7, 2]);
+  initialChessboard[7][3] = new Queen("thisSide", [7, 3]);
+  initialChessboard[7][4] = new King("thisSide", [7, 4]);
+  initialChessboard[7][5] = new Bishop("thisSide", [7, 5]);
+  initialChessboard[7][6] = new Knight("thisSide", [7, 6]);
+  initialChessboard[7][7] = new Rook("thisSide", [7, 7]);
   for (let i = 0; i < 8; i++) {
-    initialChessboard[6][i] = new Pawn(thisSide, [6, i]);
+    initialChessboard[6][i] = new Pawn("thisSide", [6, i]);
   }    
   return initialChessboard
 }
@@ -88,7 +98,9 @@ const truncateAMStraight = (AM, rowLimitTop, rowLimitBot, colLimitLeft, colLimit
   return newAM  
 }
 
-const filterAllowedMovement = (piece, chessboard) => {
+const filterAllowedMovement = (piece, chessboard, side="thisSide") => {
+  const z = side === "thisSide" ? 1 : -1
+  const otherSide = side === "thisSide" ? "thatSide" : "thisSide"
   let allowedMovementTemp = piece.allowedMovement()
   allowedMovementTemp.sort((a, b) => -a[0] + b[0]);
   for(let i = 0; i < allowedMovementTemp.length; i++) {
@@ -98,14 +110,26 @@ const filterAllowedMovement = (piece, chessboard) => {
     const isPawnCapturing = allowedMovementTemp[i][2]
     if(allowedMovementTemp[i][2]) allowedMovementTemp[i].pop()
 
-    if(allowedPiece && allowedPiece.color === "thisSide") 
+    if(allowedPiece && allowedPiece.color === side) 
       allowedMovementTemp[i] = []
     
     if(piece.type === "Pawn" && isPawnCapturing && !allowedPiece) {
       allowedMovementTemp[i] = []
     }
 
-    if(allowedPiece && piece.type === "Pawn" && allowedMovementTemp[i][1] === piece.position[1] && allowedMovementTemp[i][0] === piece.position[0] - 1) {
+    if(piece.type === "Pawn") {
+      if(allowedMovementTemp[i][0] === piece.position[0] - 2*z) {
+        if(allowedPiece || chessboard[row + 1*z][col]) {
+          allowedMovementTemp[i] = []
+        }
+      }
+    }
+
+    if(piece.type === "Pawn" && allowedPiece && allowedPiece.type === "King" && allowedPiece.color === otherSide && allowedPiece.position[0] === piece.position[0] - 1*z && allowedPiece.position[1] === piece.position[1]) {
+      allowedMovementTemp[i] = []
+    }
+
+    if(allowedPiece && piece.type === "Pawn" && allowedMovementTemp[i][1] === piece.position[1] && allowedMovementTemp[i][0] === piece.position[0] - 1*z) {
       allowedMovementTemp[i] = []
     }
 
@@ -166,7 +190,7 @@ const isEnemyCheckmate = (chessboard) => {
   chessboard.forEach((row) => {
     row.forEach((piece) => {
       if(piece && piece.color === "thatSide") {
-        const pieceMovement = filterAllowedMovement(piece, chessboard)
+        const pieceMovement = filterAllowedMovement(piece, chessboard, "thatSide")
         allEnemyAllowedMovement = [...allEnemyAllowedMovement, ...pieceMovement]  
       }
       if(!alliedKing && piece && piece.type === "King" && piece.color === "thisSide") {
@@ -174,18 +198,14 @@ const isEnemyCheckmate = (chessboard) => {
       }
     })
   })
-  const alliedKingMovement = filterAllowedMovement(alliedKing, chessboard)
-  if(!alliedKingMovement.length) return false
-  if(findCommonArrays(allEnemyAllowedMovement, alliedKingMovement).length === alliedKingMovement.length) return {result: 'enemyCheckmate'}
-  if(findCommonArrays(allEnemyAllowedMovement, alliedKingMovement).length) return {result: 'enemyCheck', pos: alliedKing.position}
+  const alliedKingAllowedMovement = filterAllowedMovement(alliedKing, chessboard)
+  if(findCommonArrays(allEnemyAllowedMovement, alliedKingAllowedMovement).length === alliedKingAllowedMovement.length && alliedKingAllowedMovement.length > 0 && findCommonArrays(allEnemyAllowedMovement, [alliedKing.position]).length) 
+    return {result: 'enemyCheckmate'}
+  if(findCommonArrays(allEnemyAllowedMovement, [alliedKing.position]).length && alliedKingAllowedMovement.length === 0) 
+    return {result: 'enemyCheckmate'}
+  if(findCommonArrays(allEnemyAllowedMovement, [alliedKing.position]).length) 
+    return {result: 'enemyCheck', value: alliedKing}
   return false
-}
-
-const enemyCheckLockedSquareClass = (rowIndex, colIndex, enemyCheck) => {
-  const alliedKingPos = enemyCheck.current
-  if(alliedKingPos) {
-    if(alliedKingPos[0] === rowIndex && alliedKingPos[1] === colIndex) return " red-piece"
-  } else return ""
 }
 
 export default function Chessboard(props) {
@@ -197,7 +217,9 @@ export default function Chessboard(props) {
   const enemyCheck = useRef(false)
   const touchTargetCol = useRef(0);
   const touchTargetRow = useRef(0);
+  const checkCounter = useRef(0)
 
+  //if enemy moves:
   useEffect(() => {
     if(props.newChessboard) {
       const newChessboard = Array.from({ length: 8 }, () =>
@@ -232,7 +254,46 @@ export default function Chessboard(props) {
         })
       }))
 
-      const value = isEnemyCheckmate(newChessboard)
+      checkFinal(newChessboard, "their team")
+      // transformPawn(newChessboard)
+      setChessboard(newChessboard)
+    }
+  }, [props.newChessboard])
+
+  const retrievablePieces = () => {
+    // Queen, Bishop, Rook, or Knight
+    const arr = []
+    // console.log(props.capturedPieces.allied)
+    props.capturedPieces.allied.forEach(capturedPiece => {
+      if (["Queen", "Bishop", "Rook", "Knight"].includes(capturedPiece.type)) {        
+        arr.push(capturedPiece)
+      }
+    }) 
+    return arr
+  }
+
+  //check if pawn is at the end and if there are any retrievable pieces
+  const pawnCheck = (rowIndex, colIndex) => {
+    const piece = chessboard[rowIndex][colIndex]
+    return retrievablePieces().length && piece && rowIndex === 0 && piece.type === "Pawn" && piece.color === "thisSide"
+  }
+
+  function pawnClick(rowIndex, colIndex) {
+    if(!pawnCheck(rowIndex, colIndex)) return
+  }
+
+  const enemyCheckLockedSquareClass = (rowIndex, colIndex, enemyCheck) => {
+    if(pawnCheck(rowIndex, colIndex)) return " red-piece"
+    
+    const alliedKingPos = enemyCheck.current
+    if(alliedKingPos) {
+      if(alliedKingPos[0] === rowIndex && alliedKingPos[1] === colIndex) return " red-piece"
+    } else return ""
+  }
+
+  function checkFinal(chessboard, team = "our team") {
+    console.log("checking final", team)
+      const value = isEnemyCheckmate(chessboard)
       if(value) {
         switch(value.result) {
           case "enemyCheckmate":
@@ -243,19 +304,47 @@ export default function Chessboard(props) {
             props.setWinner(theirTeam)
             break
           case "enemyCheck":
-            enemyCheck.current = value.pos
+            enemyCheck.current = value.value.position
+            console.log(enemyCheck.current)
+            console.log('enemy-check')
+            if(checkCounter.current === 1 || team === "our team") {
+              const message = {
+                request: "checkmateWinner",
+                value: theirTeam,
+              };
+              console.log("enemycheckmate")
+              props.sendWebSocketMessage(message);
+              props.setWinner(theirTeam);
+              break
+            }
+            if(checkCounter.current === 0) checkCounter.current = 1
             break
         }
       } else {
         enemyCheck.current = false
+        checkCounter.current = 0
       }
+  }
+
+  function moveDone (newChessboard, send = true) {
+      setDraggedPiece(null)
+      setAllowedMovement([])
+      //HERE
+      if(!retrievablePieces.length) props.sendNewChessboard(newChessboard)
+      checkFinal(newChessboard)
       setChessboard(newChessboard)
-    }
-  }, [props.newChessboard])
-   
+  }
+
+  const pixelsToSquare = (pixelX, pixelY) => {
+    const size = document.querySelector(".chessboard-cell").clientWidth
+    const squareX = Math.floor(pixelX/size)
+    const squareY = Math.floor(pixelY/size)
+    return [squareX, squareY]    
+  }
+
   const handleDragStart = (e, piece) => {
-    if(piece.color === "thatSide" || !props.isMyTurn || 
-    (enemyCheck.current && !(enemyCheck.current[0] === piece.position[0] && enemyCheck.current[1] === piece.position[1]))) 
+    if(piece.color === "thatSide" || !props.isMyTurn)
+    // (enemyCheck.current && !(enemyCheck.current[0] === piece.position[0] && enemyCheck.current[1] === piece.position[1]))) 
     {
       e.preventDefault()
       return false
@@ -275,7 +364,6 @@ export default function Chessboard(props) {
   };
   
   const handleDrop = (e, targetRow, targetCol) => {
-    console.log(targetRow, targetCol)
     e.preventDefault();
     const isMoveAllowed = allowedMovement.some(move => {
       return move[0] === targetRow && move[1] === targetCol;
@@ -293,21 +381,12 @@ export default function Chessboard(props) {
     }
 
     newChessboard[targetRow][targetCol] = draggedPiece
-    setDraggedPiece(null)
-    setAllowedMovement([])
-    props.sendNewChessboard(newChessboard)
-    setChessboard(newChessboard)
+    // transformPawn(newChessboard)
+    moveDone(newChessboard)
   };
 
-  const pixelsToSquare = (pixelX, pixelY) => {
-    const size = document.querySelector(".chessboard-cell").clientWidth
-    const squareX = Math.floor(pixelX/size)
-    const squareY = Math.floor(pixelY/size)
-    return [squareX, squareY]    
-  }
-
   const handleTouchStart = () => {
-    console.log("touch start") 
+    // console.log("touch start") 
   }
 
   const handleTouchMove = (e, piece) => {
@@ -322,7 +401,7 @@ export default function Chessboard(props) {
   const handleTouchEnd = (e) => {
     handleDrop(e, touchTargetRow.current, touchTargetCol.current)
   }
-  console.log(thisSide)
+
   return (
     <div className="chessboard">
       {chessboard.map((row, rowIndex) => (
@@ -346,8 +425,9 @@ export default function Chessboard(props) {
                     onTouchMove={e => handleTouchMove(e, piece)}
                     onTouchEnd={e => handleTouchEnd(e)}
                   >
+                    <span id="coords">{rowIndex},{colIndex}</span>
                     {piece && (
-                      <div
+                      <div onClick={() => pawnClick(rowIndex, colIndex)} 
                         className={`chess-piece ${
                           piece.color === "thisSide" ? "user" : ""
                         } ${
