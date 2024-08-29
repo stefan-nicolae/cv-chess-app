@@ -11,8 +11,6 @@ export default function CapturedPieces (props) {
         color: "dummy",
     }));
 
-    console.log(props.retrievablePieces)
-
     return (
         <div className="captured-pieces">
             {props.capturedPieces.map((piece, index) => (

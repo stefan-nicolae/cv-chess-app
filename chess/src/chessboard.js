@@ -219,9 +219,10 @@ export default function Chessboard(props) {
   const touchTargetRow = useRef(0);
   const checkCounter = useRef(0)
 
-  //if enemy moves:
+  //if enemy moves: HERE CHECK PAWN
   useEffect(() => {
     if(props.newChessboard) {
+      let toggleAllowed = true
       const newChessboard = Array.from({ length: 8 }, () =>
         Array(8).fill(null)
       );
@@ -232,6 +233,7 @@ export default function Chessboard(props) {
             switch(piece.type) {
               case "Pawn":
                 pieceClass = pieceToClass(piece, Pawn);
+                if(pawnCheck(pieceClass, "thatSide")) toggleAllowed = false
                 break;
               case "Rook":
                 pieceClass = pieceToClass(piece, Rook);
@@ -255,35 +257,16 @@ export default function Chessboard(props) {
       }))
 
       checkFinal(newChessboard, "their team")
-      // transformPawn(newChessboard)
       setChessboard(newChessboard)
+
+
+      if(toggleAllowed) 
+        props.toggleMyTurn()
     }
   }, [props.newChessboard])
 
-  const retrievablePieces = () => {
-    // Queen, Bishop, Rook, or Knight
-    const arr = []
-    // console.log(props.capturedPieces.allied)
-    props.capturedPieces.allied.forEach(capturedPiece => {
-      if (["Queen", "Bishop", "Rook", "Knight"].includes(capturedPiece.type)) {        
-        arr.push(capturedPiece)
-      }
-    }) 
-    return arr
-  }
-
-  //check if pawn is at the end and if there are any retrievable pieces
-  const pawnCheck = (rowIndex, colIndex) => {
-    const piece = chessboard[rowIndex][colIndex]
-    return retrievablePieces().length && piece && rowIndex === 0 && piece.type === "Pawn" && piece.color === "thisSide"
-  }
-
-  function pawnClick(rowIndex, colIndex) {
-    if(!pawnCheck(rowIndex, colIndex)) return
-  }
-
   const enemyCheckLockedSquareClass = (rowIndex, colIndex, enemyCheck) => {
-    if(pawnCheck(rowIndex, colIndex)) return " red-piece"
+    if(pawnCheck(chessboard[rowIndex, colIndex])) return " red-piece"
     
     const alliedKingPos = enemyCheck.current
     if(alliedKingPos) {
@@ -291,6 +274,19 @@ export default function Chessboard(props) {
     } else return ""
   }
 
+  function pawnCheck (piece, side = "thisSide") {
+    return piece.type === "Pawn" && piece.color === side && piece.position[0] === (side === "thisSide" ? 0 : 7)
+  }
+
+  function pawnClick (rowIndex, colIndex) {
+    const piece = chessboard[rowIndex][colIndex]
+    if(pawnCheck(piece)) {
+      const newChessboard = [...chessboard]
+      newChessboard[rowIndex][colIndex] = new Queen(piece.color, piece.position)
+      moveDone(newChessboard, rowIndex, colIndex)
+    }
+  }
+  
   function checkFinal(chessboard, team = "our team") {
     console.log("checking final", team)
       const value = isEnemyCheckmate(chessboard)
@@ -326,11 +322,12 @@ export default function Chessboard(props) {
       }
   }
 
-  function moveDone (newChessboard, send = true) {
+  function moveDone (newChessboard, targetCol, targetRow) {
       setDraggedPiece(null)
       setAllowedMovement([])
-      //HERE
-      if(!retrievablePieces.length) props.sendNewChessboard(newChessboard)
+      props.sendNewChessboard(newChessboard)
+      if(!pawnCheck(newChessboard[targetCol][targetRow])) 
+        props.toggleMyTurn()
       checkFinal(newChessboard)
       setChessboard(newChessboard)
   }
@@ -344,7 +341,6 @@ export default function Chessboard(props) {
 
   const handleDragStart = (e, piece) => {
     if(piece.color === "thatSide" || !props.isMyTurn)
-    // (enemyCheck.current && !(enemyCheck.current[0] === piece.position[0] && enemyCheck.current[1] === piece.position[1]))) 
     {
       e.preventDefault()
       return false
@@ -381,8 +377,7 @@ export default function Chessboard(props) {
     }
 
     newChessboard[targetRow][targetCol] = draggedPiece
-    // transformPawn(newChessboard)
-    moveDone(newChessboard)
+    moveDone(newChessboard, targetRow, targetCol)
   };
 
   const handleTouchStart = () => {

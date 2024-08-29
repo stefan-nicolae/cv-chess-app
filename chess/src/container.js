@@ -42,8 +42,7 @@ export default function Container () {
     const theirTeam = useRef(null);
     const skipCapturedPieceRequest = useRef(false)
     const [Error, setError] = useState()
-    const [retrievablePieces, setRetrievablePieces] = useState()
-    
+ 
     const queryParams = new URLSearchParams(window.location.search);
     let URLroomID
     if(queryParams.get("roomID")) URLroomID = queryParams.get("roomID").length >= 8 ?  queryParams.get("roomID") : undefined;
@@ -73,7 +72,6 @@ export default function Container () {
                     break
                 case "newChessboard":
                     setNewChessboard(receivedMessage.value);
-                    toggleMyTurn()
                     break
                 case "capturedPiece":
                     const originalObject = receivedMessage.value 
@@ -138,7 +136,6 @@ export default function Container () {
             "request": "newChessboard",
             "value": JSON.stringify(flipChessboard(newChessboard))
         })
-        toggleMyTurn()
     }
 
     if(isConnected && !roomIDRequested.current && !partner) {
@@ -186,8 +183,8 @@ export default function Container () {
         <CapturedPieces capturedPieces={capturedPieces.enemy} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
         <Chessboard setCapturedPieces={setCapturedPieces} capturedPieces={capturedPieces} ourTeam={ourTeam.current} 
             theirTeam={theirTeam.current} sendNewChessboard={sendNewChessboard} newChessboard={newChessboard} 
-            isMyTurn={isMyTurn} sendWebSocketMessage={sendWebSocketMessage} setWinner={setWinner} setRetrievablePieces={setRetrievablePieces}/>
-        <CapturedPieces capturedPieces={capturedPieces.allied} ourTeam={ourTeam.current} theirTeam={theirTeam.current} retrievablePieces={retrievablePieces}/>
+            isMyTurn={isMyTurn} sendWebSocketMessage={sendWebSocketMessage} setWinner={setWinner}  toggleMyTurn={toggleMyTurn}/>
+        <CapturedPieces capturedPieces={capturedPieces.allied} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
         <div className="info">
             <span>Room ID = {roomID}</span>
             <span>{(isMyTurn ? ourTeam.current : theirTeam.current) + "'s turn"}</span>
