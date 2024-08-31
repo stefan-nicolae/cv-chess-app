@@ -42,6 +42,7 @@ export default function Container () {
     const theirTeam = useRef(null);
     const skipCapturedPieceRequest = useRef(false)
     const [Error, setError] = useState()
+    const enPassantCoord = useRef(undefined)
  
     const queryParams = new URLSearchParams(window.location.search);
     let URLroomID
@@ -93,6 +94,10 @@ export default function Container () {
                     break
                 case "disconnect":
                     setPartner("done")
+                    break
+                case "enPassant":
+                    const coord = receivedMessage.value
+                    enPassantCoord.current = coord
                     break
             }
     }
@@ -183,7 +188,7 @@ export default function Container () {
         <CapturedPieces capturedPieces={capturedPieces.enemy} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
         <Chessboard setCapturedPieces={setCapturedPieces} capturedPieces={capturedPieces} ourTeam={ourTeam.current} 
             theirTeam={theirTeam.current} sendNewChessboard={sendNewChessboard} newChessboard={newChessboard} 
-            isMyTurn={isMyTurn} sendWebSocketMessage={sendWebSocketMessage} setWinner={setWinner}  toggleMyTurn={toggleMyTurn}/>
+            isMyTurn={isMyTurn} sendWebSocketMessage={sendWebSocketMessage} setWinner={setWinner}  toggleMyTurn={toggleMyTurn} enPassantCoord={enPassantCoord}/>
         <CapturedPieces capturedPieces={capturedPieces.allied} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
         <div className="info">
             <span>Room ID = {roomID}</span>
