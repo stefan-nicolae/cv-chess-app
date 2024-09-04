@@ -107,7 +107,7 @@ export default function Chessboard(props) {
   const rightCastleAllowed = useRef(false)
 
 
-  //if enemy moves: HERE CHECK PAWN
+  //if enemy moves
   useEffect(() => {
     if(props.newChessboard) {
       let toggleAllowed = true
@@ -153,7 +153,7 @@ export default function Chessboard(props) {
     }
   }, [props.newChessboard])
 
-  const getAllEnemyAllowedMovement = () => {
+  const getAllEnemyAllowedMovement = (chessboard) => {
     let allEnemyAllowedMovement = []
     chessboard.forEach((row) => {
       row.forEach((piece) => {
@@ -166,9 +166,9 @@ export default function Chessboard(props) {
     return allEnemyAllowedMovement
   }
 
-  const findAlliedKing = () => {
+  const findAlliedKing = (newChessboard) => {
     let alliedKing 
-    chessboard.forEach((row) => {
+    newChessboard.forEach((row) => {
       row.forEach((piece) => {
         if(!alliedKing && piece && piece.type === "King" && piece.color === "thisSide") {
           alliedKing = piece
@@ -188,15 +188,18 @@ export default function Chessboard(props) {
       const col = allowedMovementTemp[i][1]
       const allowedPiece = chessboard[row][col]
       const isPawnCapturing = allowedMovementTemp[i][2]
-
       if(allowedMovementTemp[i][2]) allowedMovementTemp[i].pop()
   
-      if(allowedPiece && allowedPiece.color === side) 
-        allowedMovementTemp[i] = []
-      
-      if(piece.type === "Pawn" && isPawnCapturing && !allowedPiece) {
+      if(allowedPiece && allowedPiece.color === side && !skip) {
         allowedMovementTemp[i] = []
       }
+      
+      if(piece.type === "Pawn" && isPawnCapturing && !allowedPiece && !skip) {
+        allowedMovementTemp[i] = []
+      }
+
+      if(allowedPiece && allowedPiece.position[0] === piece.position[0] && allowedPiece.position[1] === piece.position[1])
+        allowedMovementTemp[i] = []
   
       if(piece.type === "Pawn") {
         if(allowedMovementTemp[i][0] === piece.position[0] - 2*z) {
@@ -213,7 +216,7 @@ export default function Chessboard(props) {
       if(allowedPiece && piece.type === "Pawn" && allowedMovementTemp[i][1] === piece.position[1] && allowedMovementTemp[i][0] === piece.position[0] - 1*z) {
         allowedMovementTemp[i] = []
       }
-  
+      
       if(allowedPiece && (piece.type === "Bishop" || piece.type === "Queen" )) {
         const allowedPieceDiagPos = checkDiag(piece.position, allowedPiece.position)
         if(allowedPieceDiagPos) {
@@ -221,7 +224,7 @@ export default function Chessboard(props) {
         }
       }		
     }
-  
+    
     if(piece.type === "Rook" || piece.type === "Queen") {
       const pieceRow = piece.position[0]
       const pieceCol = piece.position[1]
@@ -232,21 +235,21 @@ export default function Chessboard(props) {
           break
         }
       }
-  
+
       for (let row = pieceRow - 1; row >= 0; row--) {
         if(chessboard[row][pieceCol]) { 
           rowLimitTop = row 
           break
         }
       }
-  
+
       for (let col = pieceCol - 1; col >= 0; col--) {
         if (chessboard[pieceRow][col]) {
           colLimitLeft = col;
           break;
         }
       }
-  
+
       for (let col = pieceCol + 1; col < 8; col++) {
         if (chessboard[pieceRow][col]) {
           colLimitRight = col;
@@ -257,7 +260,7 @@ export default function Chessboard(props) {
     }
   
     if(piece.type === "King" && kingMoved.current === false && !enemyCheck.current && !skip) {
-      const allEnemyAllowedMovement = getAllEnemyAllowedMovement()
+      const allEnemyAllowedMovement = getAllEnemyAllowedMovement(chessboard)
       if(leftRookMoved.current === false) {
         if(!chessboard[7][1] && !chessboard[7][2] && !chessboard[7][3]) {
           if(!findCommonArrays(allEnemyAllowedMovement, [[7, 1], [7,2], [7, 3]]).length) 
@@ -284,14 +287,14 @@ export default function Chessboard(props) {
     }
 
     return allowedMovementTemp.filter((arr) => arr.length > 0); 
-  
   }
   
-  const isEnemyCheckmate = (chessboard) => {
-    let alliedKing = findAlliedKing()
-    const allEnemyAllowedMovement = getAllEnemyAllowedMovement()
-    const alliedKingAllowedMovement = filterAllowedMovement(alliedKing, chessboard)
-    if(findCommonArrays(allEnemyAllowedMovement, alliedKingAllowedMovement).length === alliedKingAllowedMovement.length && alliedKingAllowedMovement.length > 0 && findCommonArrays(allEnemyAllowedMovement, [alliedKing.position]).length) 
+  const isEnemyCheckmate = (newChessboard) => {
+    let alliedKing = findAlliedKing(newChessboard)
+    const allEnemyAllowedMovement = getAllEnemyAllowedMovement(newChessboard)
+    const alliedKingAllowedMovement = filterAllowedMovement(alliedKing, newChessboard)
+    if(findCommonArrays(allEnemyAllowedMovement, alliedKingAllowedMovement).length === alliedKingAllowedMovement.length &&
+     alliedKingAllowedMovement.length > 0 && findCommonArrays(allEnemyAllowedMovement, [alliedKing.position]).length) 
       return {result: 'enemyCheckmate'}
     if(findCommonArrays(allEnemyAllowedMovement, [alliedKing.position]).length && alliedKingAllowedMovement.length === 0) 
       return {result: 'enemyCheckmate'}
@@ -313,13 +316,15 @@ export default function Chessboard(props) {
   }
 
   function pawnCheck (piece, side = "thisSide") {
-    return piece.type === "Pawn" && piece.color === side && piece.position[0] === (side === "thisSide" ? 0 : 7)
+    const check = piece.type === "Pawn" && piece.color === side && piece.position[0] === (side === "thisSide" ? 0 : 7)
+    if(check)   console.log("pawn check", side)
+    return check
   }
 
   function promotePawnTo (newPawn) {
     const newChessboard = [...chessboard]
-    newPawn.color = "thisSide"
     newPawn.position = newPawnPosition.current
+    newPawnPosition.current = undefined
     newChessboard[newPawn.position[0]][newPawn.position[1]] = newPawn
     togglePawnMenu(false)
     moveDone(newChessboard, newPawn.position[0], newPawn.position[1])
@@ -332,12 +337,13 @@ export default function Chessboard(props) {
     }
   }
   
-  function checkFinal(chessboard, team = "our team") {
-    console.log("checking final", team)
-      const value = isEnemyCheckmate(chessboard)
+  function checkFinal(newChessboard, team = "our team") {
+    // console.log("checking final", team)
+      const value = isEnemyCheckmate(newChessboard)
       if(value) {
         switch(value.result) {
           case "enemyCheckmate":
+            // console.log("enemycheck")
             props.sendWebSocketMessage({
               "request": "checkmateWinner",
               "value": theirTeam
@@ -346,14 +352,14 @@ export default function Chessboard(props) {
             break
           case "enemyCheck":
             enemyCheck.current = value.value.position
-            console.log(enemyCheck.current)
-            console.log('enemy-check')
+            // console.log(enemyCheck.current)
+            // console.log('enemy-check')
             if(checkCounter.current === 1 || team === "our team") {
               const message = {
                 request: "checkmateWinner",
                 value: theirTeam,
               };
-              console.log("enemycheckmate")
+              // console.log("enemycheckmate")
               props.sendWebSocketMessage(message);
               props.setWinner(theirTeam);
               break
@@ -367,11 +373,11 @@ export default function Chessboard(props) {
       }
   }
 
-  function moveDone (newChessboard, targetCol, targetRow) {
+  function moveDone (newChessboard, targetRow, targetCol) {
       setDraggedPiece(null)
       setAllowedMovement([])
       props.sendNewChessboard(newChessboard)
-      if(!pawnCheck(newChessboard[targetCol][targetRow])) 
+      if(!pawnCheck(newChessboard[targetRow][targetCol])) 
         props.toggleMyTurn()
       checkFinal(newChessboard)
       setChessboard(newChessboard)
@@ -385,7 +391,7 @@ export default function Chessboard(props) {
   }
 
   const handleDragStart = (e, piece) => {
-    if(piece.color === "thatSide" || !props.isMyTurn || newPawnPosition.current)
+    if(!piece || piece.color === "thatSide" || !props.isMyTurn || newPawnPosition.current)
     {
       e.preventDefault()
       return false
@@ -394,6 +400,8 @@ export default function Chessboard(props) {
     if(e.dataTransfer) e.dataTransfer.setData("text/plain", ""); 
     setDraggedPiece(piece)
     setAllowedMovement(filterAllowedMovement(piece, chessboard))
+    // setAllowedMovement(filterAllowedMovement(piece, chessboard, "thisSide", true))
+
     return true
   };
   

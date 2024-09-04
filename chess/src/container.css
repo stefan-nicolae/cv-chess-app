@@ -1,17 +1,30 @@
 /* Define the Helvetica font */
 @font-face {
-    font-family: 'Helvetica';
-    src: url("Helvetica.ttf") format('truetype');
+    font-family: 'HelveticaNeueLight';
+    src: url("HelveticaNeueLight.otf") format('truetype');
     font-weight: normal;
     font-style: normal;
-  }
+}
+
+@font-face {
+    font-family: 'HelveticaNeueMedium';
+    src: url("HelveticaNeueMedium.otf") format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
   
 body {
-    font-family: 'Helvetica', sans-serif;
+    font-family: 'HelveticaNeueLight', sans-serif;
+    font-weight: normal;
 }  
 
 :root {
-    --backgroundColor: rgb(69, 69, 69);
+    --transparent: rgba(255, 255, 255, 0.445);
+    --transparent2: rgba(255, 255, 255, 0.534);
+    --white: rgb(255, 255, 255);
+    --selected: rgba(0, 0, 0, 0);
+    --highlight: rgb(89, 0, 255);
+    --white-cell: rgba(255, 255, 255, 0.708);
 }
 
 * {
@@ -21,48 +34,59 @@ body {
 }
 
 body {
-    background-color: var(--backgroundColor);
+    /* background-color: var(--backgroundColor); */
 }
 
 .container {
-    background-color: var(--backgroundColor);
-    height: 100vh;
+    /* background-color: var(--backgroundColor); */
+    background: linear-gradient(180deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%); 
+    min-height: 100vh;
     padding: 32px;
     user-select: none;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    color: var(--white);
+    /* height: 1200px; */
 }
 
+
 .container.menu {
-    color: white;
+    /* color: white; */
     user-select: unset;
     text-align: center;
 }
 
 .container.menu button {
     margin-top: 8px;
-    font-size: 100% !important;
+    font-size: large;
 }
 
 .container.menu h2 {
     margin: 8px 0;
+    font-family: HelveticaNeueMedium;
+    font-weight: normal;
 }
 
 .container.menu input {
     margin-top: 16px;
     margin-bottom: 8px;
 
+    padding: 8px;
     height: 32px;
     width: 256px;
     border-radius: 8px;
     border: 0;
-    padding: 8px;
+    font-family: helveticaneuelight;
+    background-color: var(--transparent);
+    color: var(--white);
+    font-size: medium;
 }
 
 .container.menu .error {
     margin-top: 8px;
-    color: red;
+    /* color: red; */
     font-family: 'Times New Roman', Times, serif;
 }
 
@@ -72,27 +96,29 @@ body {
 
 .container.menu span:first-of-type {
     margin-top: 8px;
-    border: 1px solid gray;
-    padding: 2px 4px;
-    color: rgb(158, 158, 158);
+    /* border: 1px solid gray; */
+    padding: 8px 16px;
+    /* color: rgb(158, 158, 158); */
     font-size: 150%;
     border-radius: 8px;
+    color: var(--highlight);
 }
 
 .container > .info {
-    color: white;
+    /* color: white; */
     display: flex;
     justify-content: space-between;
     max-width: 512px;
     width: 100%;
     align-content: center;
-    margin-top: 4px;
+    align-items: center;
+    margin-top: 8px;
     user-select: none;
     padding-bottom: 4px;
 }
 
 .container > .info span:first-of-type {
-    color: rgb(146, 146, 146);
+    /* color: rgb(146, 146, 146); */
 }
 
 .game-over {
@@ -106,29 +132,36 @@ body {
 }
 
 .game-over-shadow {
-    background-color: black;
+    background-color: rgb(0, 0, 0);
     z-index: 4;
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    min-height: 100vh;
-    opacity: 0.8;
+    min-height: 100vh !important;
+    opacity: 0.5;
+    min-height: 100dvh;
+    /* height: 1200px; */
 }
 
 .game-over-info {
     z-index: 5;
-    color: rgb(164, 164, 164);
+    /* color: rgb(164, 164, 164); */
     width: 256px;
     height: 128px;
     position: absolute;
     text-align: center;
+    
     left: calc(50% - 128px);
     top: calc(50vh - 64px);
-    background-color: rgb(34, 34, 34);
-    border: 1px solid rgb(129, 129, 129);
+    /* background-color: rgb(34, 34, 34); */
+    /* border: 1px solid rgb(129, 129, 129); */
     font-size: 80%;
     padding-top: 8px;
+}
+
+.game-over-info:hover {
+    opacity: 0.1;
 }
 
 .game-over-info h2 {
@@ -140,37 +173,26 @@ body {
 }
 
 button {
-    padding: 4px 8px;
+    padding: 8px 16px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    background-color: rgb(185, 98, 98);
-    color: white;
+    /* background-color: rgb(185, 98, 98); */
+    /* color: white; */
     user-select: none;
+    font-family: helveticaneuelight;
+    background-color: var(--transparent2);
+    color: var(--white)
+}
+
+button:hover {
+    background-color: var(--transparent);
+
 }
 
 @media (max-width: 576px) {
     .container {
         padding: 8px;
-        font-size: 80%;
-        max-height: 100vh;
-        overflow-y: hidden;
-    }
-
-    .container button {
-        font-size: 80%;
-    }
-
-    .container.menu .error {
-        font-size: 125%;
-    }
-
-    .container.menu h2 {
-        font-size: 125%;
-    }
-    
-    .container.menu h1 {
-        font-size: 150%;
     }
   }
   

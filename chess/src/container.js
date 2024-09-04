@@ -123,6 +123,28 @@ export default function Container () {
         }
     }, [partner])
 
+    useEffect(() => {
+        const container = document.querySelector('.container');
+        const gameOverShadow = document.querySelector(".game-over-shadow");
+    
+        const handleResize = () => {
+            if (container && gameOverShadow) {
+                gameOverShadow.style.height = `${container.clientHeight}px`;
+            }
+        };
+    
+        window.addEventListener('resize', handleResize);
+    
+        // Initial call to set the height on mount
+        handleResize();
+    
+        // Cleanup function
+        return () => {
+            // window.removeEventListener('resize', handleResize);
+        };
+    }, [winner]);
+
+
     const joinRoom = () => {
         if (inputRef.current) {
             // console.log("joining room")
@@ -199,7 +221,6 @@ export default function Container () {
                         request: "checkmateWinner",
                         value: theirTeam.current,
                     };
-
                     sendWebSocketMessage(message);
                     setWinner(theirTeam.current);
                 }}
