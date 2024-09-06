@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-const PRODUCTION = false
+const PRODUCTION = true
 
 const WebSocketHost = PRODUCTION ? 'wss://vladolteanu.com/stfn/chess-app' : 'ws://localhost:8080'; 
 
