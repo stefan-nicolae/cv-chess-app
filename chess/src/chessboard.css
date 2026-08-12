@@ -1,9 +1,10 @@
 .chessboard {
     display: flex;
     flex-direction: column;
-    max-width: 512px;
+    max-width: 384px;
     width: 100%;
     position: relative;
+    touch-action: none;
     border-left: 8px solid var(--transparent2);
     border-right: 8px solid var(--transparent2);
 }
@@ -41,6 +42,10 @@
 
 .chess-piece {
     height: 100%;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .chess-piece.blocked-piece {
@@ -49,6 +54,35 @@
 
 img {
     width: 90%;
+}
+
+.chess-piece > img {
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+}
+
+.touch-drag-preview {
+    position: fixed;
+    width: 48px;
+    height: 48px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 10;
+}
+
+.touch-drag-preview img {
+    width: 100%;
+    height: 100%;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .chess-piece,
+    .chess-piece img {
+        -webkit-user-drag: none;
+    }
 }
 
 .chess-piece.user img {
@@ -69,12 +103,12 @@ img:hover {
 
 .pawn-menu {
     position: absolute;
-    height: 64px;
+    height: 48px;
     /* background-color: aliceblue; */
-    top: -64px;
+    top: -48px;
     left: 0;
-    max-width: 512px;
-    width: calc(64px * 4);
+    max-width: 384px;
+    width: calc(48px * 4);
     z-index: 1;
     display: flex;
     user-select: none;

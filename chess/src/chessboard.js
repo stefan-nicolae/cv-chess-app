@@ -96,9 +96,14 @@ export default function Chessboard(props) {
   const [chessboard, setChessboard] = useState(initializeChessboard());
   const [allowedMovement, setAllowedMovement] = useState([])
   const [draggedPiece, setDraggedPiece] = useState()
+  const chessboardRef = useRef(null)
+  const mouseDragPiece = useRef(null)
+  const mouseDragAllowedMovement = useRef([])
+  const touchDragPiece = useRef(null)
+  const touchDragAllowedMovement = useRef([])
+  const touchIdentifier = useRef(null)
+  const [touchDragPreview, setTouchDragPreview] = useState(null)
   const enemyCheck = useRef(false)
-  const touchTargetCol = useRef(0);
-  const touchTargetRow = useRef(0);
   const checkCounter = useRef(0)
   const [pawnMenu, togglePawnMenu] = useState(false)
   const newPawnPosition = useRef()
@@ -110,11 +115,12 @@ export default function Chessboard(props) {
   //if enemy moves
   useEffect(() => {
     if(props.newChessboard) {
+      const receivedBoard = props.newChessboard.value
       let toggleAllowed = true
       const newChessboard = Array.from({ length: 8 }, () =>
         Array(8).fill(null)
       );
-      if(props.newChessboard) JSON.parse(props.newChessboard).forEach((row => {
+      JSON.parse(receivedBoard).forEach((row => {
         row.forEach(piece => {
           if(piece !== null) {
             let pieceClass 
@@ -147,11 +153,30 @@ export default function Chessboard(props) {
       checkFinal(newChessboard, "their team")
       setChessboard(newChessboard)
 
-
       if(toggleAllowed) 
         props.toggleMyTurn()
+
+      props.confirmNewChessboard(
+        props.newChessboard.commandId,
+        JSON.stringify(JSON.parse(receivedBoard))
+      )
     }
   }, [props.newChessboard])
+
+  useEffect(() => {
+    const board = chessboardRef.current
+    if(!board) return
+
+    const preventScrollWhileDragging = (event) => {
+      if(touchIdentifier.current !== null) event.preventDefault()
+    }
+
+    board.addEventListener("touchmove", preventScrollWhileDragging, { passive: false })
+
+    return () => {
+      board.removeEventListener("touchmove", preventScrollWhileDragging)
+    }
+  }, [])
 
   const getAllEnemyAllowedMovement = (chessboard) => {
     let allEnemyAllowedMovement = []
@@ -322,7 +347,7 @@ export default function Chessboard(props) {
   }
 
   function promotePawnTo (newPawn) {
-    const newChessboard = [...chessboard]
+    const newChessboard = chessboard.map(row => [...row])
     newPawn.position = newPawnPosition.current
     newPawnPosition.current = undefined
     newChessboard[newPawn.position[0]][newPawn.position[1]] = newPawn
@@ -373,54 +398,103 @@ export default function Chessboard(props) {
       }
   }
 
-  function moveDone (newChessboard, targetRow, targetCol) {
+  async function moveDone (newChessboard, targetRow, targetCol, capturedPiece) {
       setDraggedPiece(null)
       setAllowedMovement([])
-      props.sendNewChessboard(newChessboard)
+      try {
+        await props.sendNewChessboard(newChessboard)
+      } catch(error) {
+        console.error("Move was not delivered:", error)
+        return
+      }
+      if(capturedPiece) {
+        props.setCapturedPieces(previous => ({
+          ...previous,
+          enemy: [...previous.enemy, capturedPiece]
+        }))
+      }
       if(!pawnCheck(newChessboard[targetRow][targetCol])) 
         props.toggleMyTurn()
       checkFinal(newChessboard)
       setChessboard(newChessboard)
   }
 
-  const pixelsToSquare = (pixelX, pixelY) => {
-    const size = document.querySelector(".chessboard-cell").clientWidth
-    const squareX = Math.floor(pixelX/size)
-    const squareY = Math.floor(pixelY/size)
-    return [squareX, squareY]    
-  }
-
   const handleDragStart = (e, piece) => {
-    if(!piece || piece.color === "thatSide" || !props.isMyTurn || newPawnPosition.current)
+    if(
+      touchIdentifier.current !== null ||
+      !piece ||
+      piece.color === "thatSide" ||
+      !props.isMyTurn ||
+      newPawnPosition.current
+    )
     {
       e.preventDefault()
       return false
     }
 
-    if(e.dataTransfer) e.dataTransfer.setData("text/plain", ""); 
+    if(e.dataTransfer) {
+      e.dataTransfer.setData("text/plain", "chess-piece")
+      e.dataTransfer.effectAllowed = "move"
+    }
+    const pieceMovement = filterAllowedMovement(piece, chessboard)
+    mouseDragPiece.current = piece
+    mouseDragAllowedMovement.current = pieceMovement
     setDraggedPiece(piece)
-    setAllowedMovement(filterAllowedMovement(piece, chessboard))
-    // setAllowedMovement(filterAllowedMovement(piece, chessboard, "thisSide", true))
+    setAllowedMovement(pieceMovement)
 
     return true
   };
   
   const handleDragEnd = () => {
-    setAllowedMovement(null)
+    mouseDragPiece.current = null
+    mouseDragAllowedMovement.current = []
+    setDraggedPiece(null)
+    setAllowedMovement([])
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
+    if(e.dataTransfer) e.dataTransfer.dropEffect = "move"
   };
+
+  const pointerToSquare = (clientX, clientY) => {
+    if(!chessboardRef.current) return [-1, -1]
+
+    const board = chessboardRef.current
+    const bounds = board.getBoundingClientRect()
+    const squareSize = board.clientWidth / 8
+    const left = bounds.left + board.clientLeft
+    const top = bounds.top + board.clientTop
+
+    return [
+      Math.floor((clientY - top) / squareSize),
+      Math.floor((clientX - left) / squareSize)
+    ]
+  }
   
-  const handleDrop = (e, targetRow, targetCol) => {
-    e.preventDefault();
-    const isMoveAllowed = allowedMovement.some(move => {
+  const handleDrop = (
+    e,
+    targetRow,
+    targetCol,
+    selectedPiece,
+    selectedAllowedMovement
+  ) => {
+    if(e) e.preventDefault();
+    const movePiece = selectedPiece || mouseDragPiece.current || draggedPiece
+    const moveOptions =
+      selectedAllowedMovement ||
+      mouseDragAllowedMovement.current ||
+      allowedMovement ||
+      []
+
+    if(!movePiece) return
+
+    const isMoveAllowed = moveOptions.some(move => {
       return move[0] === targetRow && move[1] === targetCol;
     });   
     if(!isMoveAllowed) return
 
-    if(draggedPiece.type === "Pawn" && draggedPiece.position[0] === targetRow + 2) {
+    if(movePiece.type === "Pawn" && movePiece.position[0] === targetRow + 2) {
       props.sendWebSocketMessage(
         {
           "request": "enPassant",
@@ -429,18 +503,22 @@ export default function Chessboard(props) {
       )
     }
 
-    if(draggedPiece.type === "Rook") {
-      if(draggedPiece.position[0] === 7 && draggedPiece.position[1] === 0) {
+    if(movePiece.type === "Rook") {
+      if(movePiece.position[0] === 7 && movePiece.position[1] === 0) {
         leftRookMoved.current = true
       }
-      if(draggedPiece.position[0] === 7 && draggedPiece.position[1] === 7) {
+      if(movePiece.position[0] === 7 && movePiece.position[1] === 7) {
         rightRookMoved.current = true
       }
     }
 
-    const newChessboard = [...chessboard]
-    newChessboard[draggedPiece.position[0]][draggedPiece.position[1]] = null
-    if(draggedPiece.type === "King") {
+    const newChessboard = chessboard.map(row => [...row])
+    const movedPiece = Object.assign(
+      Object.create(Object.getPrototypeOf(movePiece)),
+      movePiece
+    )
+    newChessboard[movePiece.position[0]][movePiece.position[1]] = null
+    if(movePiece.type === "King") {
       if(leftCastleAllowed.current && targetRow === 7 && targetCol === 0) {
         const leftCastle = chessboard[7][0]
         newChessboard[7][0] = null
@@ -459,11 +537,11 @@ export default function Chessboard(props) {
       rightCastleAllowed.current = false
       kingMoved.current = true
     } 
-    draggedPiece.position = [targetRow, targetCol]
+    movedPiece.position = [targetRow, targetCol]
 
    let capturedPiece = newChessboard[targetRow][targetCol] 
 
-    if(draggedPiece.type === "Pawn") {
+    if(movedPiece.type === "Pawn") {
       if(props.enPassantCoord.current) {
         if(targetRow === props.enPassantCoord.current[0] - 1 && targetCol === props.enPassantCoord.current[1]) {
           capturedPiece = newChessboard[props.enPassantCoord.current[0]][props.enPassantCoord.current[1]]
@@ -474,36 +552,108 @@ export default function Chessboard(props) {
     props.enPassantCoord.current = undefined
 
 
-    if(capturedPiece) {
-      const newCapturedPieces = {...props.capturedPieces}
-      newCapturedPieces.enemy.push(capturedPiece)
-      props.setCapturedPieces(newCapturedPieces)
-    }
-
-    newChessboard[targetRow][targetCol] = draggedPiece
-    moveDone(newChessboard, targetRow, targetCol)
+    newChessboard[targetRow][targetCol] = movedPiece
+    moveDone(newChessboard, targetRow, targetCol, capturedPiece)
   };
 
-  const handleTouchStart = () => {
-    // console.log("touch start") 
+  const clearTouchDrag = () => {
+    touchDragPiece.current = null
+    touchDragAllowedMovement.current = []
+    touchIdentifier.current = null
+    setTouchDragPreview(null)
+    setDraggedPiece(null)
+    setAllowedMovement([])
   }
 
-  const handleTouchMove = (e, piece) => {
-    if(!handleDragStart(e, piece)) return
-    if (e.touches.length === 1) {
-      const touchX = e.touches[0].clientX;
-      let touchY = e.touches[0].clientY - document.querySelector(".captured-pieces").clientHeight;
-      [touchTargetCol.current, touchTargetRow.current] = pixelsToSquare(touchX, touchY)
-    }
+  const handleTouchStart = (e, piece) => {
+    if(
+      touchIdentifier.current !== null ||
+      e.changedTouches.length !== 1 ||
+      !piece ||
+      piece.color === "thatSide" ||
+      !props.isMyTurn ||
+      newPawnPosition.current
+    ) return
+
+    e.preventDefault()
+    const touch = e.changedTouches[0]
+    const pieceMovement = filterAllowedMovement(piece, chessboard)
+    touchDragPiece.current = piece
+    touchDragAllowedMovement.current = pieceMovement
+    touchIdentifier.current = touch.identifier
+    setDraggedPiece(piece)
+    setAllowedMovement(pieceMovement)
+    setTouchDragPreview({
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      piece
+    })
+  }
+
+  const findTrackedTouch = (touches) => {
+    return Array.from(touches).find(
+      touch => touch.identifier === touchIdentifier.current
+    )
+  }
+
+  const handleTouchMove = (e) => {
+    const touch = findTrackedTouch(e.touches)
+    if(!touch) return
+
+    e.preventDefault()
+    setTouchDragPreview(previous => previous ? {
+      ...previous,
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    } : null)
   }
 
   const handleTouchEnd = (e) => {
-    handleDrop(e, touchTargetRow.current, touchTargetCol.current)
+    const touch = findTrackedTouch(e.changedTouches)
+    if(!touch) return
+
+    e.preventDefault()
+    const piece = touchDragPiece.current
+    const pieceMovement = touchDragAllowedMovement.current
+    const [targetRow, targetCol] = pointerToSquare(touch.clientX, touch.clientY)
+    clearTouchDrag()
+    handleDrop(
+      null,
+      targetRow,
+      targetCol,
+      piece,
+      pieceMovement
+    )
   }
 
+  const handleTouchCancel = () => clearTouchDrag()
+
   return (
-    <div className="chessboard">
+    <div
+      className="chessboard"
+      ref={chessboardRef}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
+    >
      {pawnMenu ? <PawnMenu theirTeam={theirTeam} ourTeam={ourTeam} promotePawnTo={promotePawnTo}/> : null}
+     {touchDragPreview && (
+       <div
+         className="touch-drag-preview"
+         style={{
+           left: touchDragPreview.clientX,
+           top: touchDragPreview.clientY
+         }}
+       >
+         <img
+           draggable="false"
+           src={pieceData[touchDragPreview.piece.type][
+             (touchDragPreview.piece.color === "thisSide" ? ourTeam : theirTeam) === "black" ? 0 : 1
+           ]}
+           alt=""
+         />
+       </div>
+     )}
       {chessboard.map((row, rowIndex) => (
         <div key={rowIndex} className="chessboard-row">
               {row.map((piece, colIndex) => {
@@ -516,25 +666,29 @@ export default function Chessboard(props) {
                   <div
                     key={colIndex}
                     className={`chessboard-cell ${cellColor}`}
-                    onDragStart={e => handleDragStart(e, piece)}
                     onDragOver={e => handleDragOver(e)}
-                    onDragEnd={handleDragEnd}
                     onDrop={(e) => handleDrop(e, rowIndex, colIndex)}
-
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={e => handleTouchMove(e, piece)}
-                    onTouchEnd={e => handleTouchEnd(e)}
                   >
                     <span id="coords">{rowIndex},{colIndex}</span>
                     {piece && (
-                      <div onClick={() => pawnClick(rowIndex, colIndex)} 
+                      <div
+                        draggable={piece.color === "thisSide"}
+                        onDragStart={e => handleDragStart(e, piece)}
+                        onDragEnd={handleDragEnd}
+                        onTouchStart={e => handleTouchStart(e, piece)}
+                        onContextMenu={e => e.preventDefault()}
+                        onClick={() => pawnClick(rowIndex, colIndex)} 
                         className={`chess-piece ${
                           piece.color === "thisSide" ? "user" : ""
                         } ${
                           enemyCheckLockedSquareClass(rowIndex, colIndex, enemyCheck)
                         }`}
                       >
-                        <img src={pieceData[piece.type][(piece.color === "thisSide" ? ourTeam : theirTeam) === "black" ? 0 : 1]} alt={piece.type} />
+                        <img
+                          draggable="false"
+                          src={pieceData[piece.type][(piece.color === "thisSide" ? ourTeam : theirTeam) === "black" ? 0 : 1]}
+                          alt={piece.type}
+                        />
                       </div>
                     )}
                   </div>

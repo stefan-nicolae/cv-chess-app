@@ -72,7 +72,7 @@ export default function Container () {
                     setPartner(true)
                     break
                 case "newChessboard":
-                    setNewChessboard(receivedMessage.value);
+                    setNewChessboard(receivedMessage);
                     break
                 case "capturedPiece":
                     const originalObject = receivedMessage.value 
@@ -123,28 +123,6 @@ export default function Container () {
         }
     }, [partner])
 
-    useEffect(() => {
-        const container = document.querySelector('.container');
-        const gameOverShadow = document.querySelector(".game-over-shadow");
-    
-        const handleResize = () => {
-            if (container && gameOverShadow) {
-                gameOverShadow.style.height = `${container.clientHeight}px`;
-            }
-        };
-    
-        window.addEventListener('resize', handleResize);
-    
-        // Initial call to set the height on mount
-        handleResize();
-    
-        // Cleanup function
-        return () => {
-            // window.removeEventListener('resize', handleResize);
-        };
-    }, [winner]);
-
-
     const joinRoom = () => {
         if (inputRef.current) {
             // console.log("joining room")
@@ -159,9 +137,17 @@ export default function Container () {
     }
 
     const sendNewChessboard = (newChessboard) => {
-        sendWebSocketMessage({
+        return sendWebSocketMessage({
             "request": "newChessboard",
             "value": JSON.stringify(flipChessboard(newChessboard))
+        }, true)
+    }
+
+    const confirmNewChessboard = (commandId, value) => {
+        sendWebSocketMessage({
+            request: "commandReceived",
+            commandId,
+            value
         })
     }
 
@@ -207,11 +193,12 @@ export default function Container () {
                 <button onClick={() => {setPartner("done")}}>Leave Game</button> 
             </div>
         </div> : ""}
-        <CapturedPieces capturedPieces={capturedPieces.enemy} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
+        <CapturedPieces position="one" capturedPieces={capturedPieces.enemy} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
         <Chessboard setCapturedPieces={setCapturedPieces} capturedPieces={capturedPieces} ourTeam={ourTeam.current} 
             theirTeam={theirTeam.current} sendNewChessboard={sendNewChessboard} newChessboard={newChessboard} 
-            isMyTurn={isMyTurn} sendWebSocketMessage={sendWebSocketMessage} setWinner={setWinner}  toggleMyTurn={toggleMyTurn} enPassantCoord={enPassantCoord}/>
-        <CapturedPieces capturedPieces={capturedPieces.allied} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
+            confirmNewChessboard={confirmNewChessboard} isMyTurn={isMyTurn} sendWebSocketMessage={sendWebSocketMessage}
+            setWinner={setWinner} toggleMyTurn={toggleMyTurn} enPassantCoord={enPassantCoord}/>
+        <CapturedPieces position="two" capturedPieces={capturedPieces.allied} ourTeam={ourTeam.current} theirTeam={theirTeam.current}/>
         <div className="info">
             <span>Room ID = {roomID}</span>
             <span>{(isMyTurn ? ourTeam.current : theirTeam.current) + "'s turn"}</span>

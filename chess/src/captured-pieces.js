@@ -12,7 +12,7 @@ export default function CapturedPieces (props) {
     }));
 
     return (
-        <div className="captured-pieces">
+        <div className={`captured-pieces ${props.position}`}>
             {props.capturedPieces.map((piece, index) => (
             <div key={index} className={`captured-piece`}>  
                 <img

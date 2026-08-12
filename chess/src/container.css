@@ -108,7 +108,7 @@ body {
     /* color: white; */
     display: flex;
     justify-content: space-between;
-    max-width: 512px;
+    max-width: 384px;
     width: 100%;
     align-content: center;
     align-items: center;
@@ -123,11 +123,10 @@ body {
 
 .game-over {
     z-index: 3;
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: fixed;
+    inset: 0;
     width: 100%;
-    min-height: 100vh;
+    min-height: 100dvh;
     user-select: none;
 }
 
@@ -135,13 +134,10 @@ body {
     background-color: rgb(0, 0, 0);
     z-index: 4;
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
-    min-height: 100vh !important;
+    min-height: 100%;
     opacity: 0.5;
-    min-height: 100dvh;
-    /* height: 1200px; */
 }
 
 .game-over-info {

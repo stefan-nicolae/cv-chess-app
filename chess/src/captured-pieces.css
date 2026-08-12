@@ -1,5 +1,5 @@
 .captured-pieces {
-    max-width: 512px;
+    max-width: 384px;
     width: 100%;
     /* background-color: rgba(255, 255, 255, 0.247); */
     background-color: var(--transparent2);
@@ -22,11 +22,11 @@
     width: 10;
 }
 
-.captured-pieces:first-of-type {
-    border-radius: 8px 8px 0 0;
+.captured-pieces.one {
+    border-radius: 8px 8px 0 0; 
 }
 
-.captured-pieces {
+.captured-pieces.two {
     border-radius: 0 0 8px 8px;
     padding: 0 8px;
 }
